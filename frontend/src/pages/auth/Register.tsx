@@ -29,7 +29,7 @@ const Register = () => {
       const user = await login(email, password)
       if (user.role === "tenant") {
         navigate("/tenant/");
-      } else if (user.role === "propertyOwner") {
+      } else if (user.role === "propertyOwner") { 
         navigate("/owner/dashboard");
       } else if (user.role === "skillProvider") {
         navigate("/provider/dashboard");
