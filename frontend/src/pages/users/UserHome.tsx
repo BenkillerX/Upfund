@@ -8,6 +8,7 @@ import {
   Hand 
 } from "lucide-react"
 import { useState } from "react"
+import LiveTradingChart from "./LiveTradingChart"
 
 const UserHome = () => {
   const [showBalance, setShowBalance] = useState(true)
@@ -75,6 +76,7 @@ const UserHome = () => {
         </p>
       </div>
     </div>
+    <LiveTradingChart/>
 
     {/* Quick Actions */}
     <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-xl">
