@@ -1,8 +1,4 @@
 import { Route, Routes } from "react-router-dom"
-import PublicLayout from "./layout/PublicLayout"
-import LandingPage from "./pages/public/LandingPage"
-import HowItWorks from "./pages/public/HowItWorks"
-import About from "./pages/public/About"
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register"
 import UsersLayout from "./layout/UsersLayout"
@@ -17,11 +13,6 @@ function App() {
   return (
     <>
       <Routes>
-        <Route element={<PublicLayout/>}>
-          <Route path="/" element={<LandingPage/>}/>
-          <Route path="/how-it-works" element={<HowItWorks/>}/>
-          <Route path="/about" element={<About/>}/>
-        </Route>
         <Route element={<UsersLayout/>}>
           <Route path="/user/" element={<UserHome/>}/>
           <Route path="/user/withdraw" element={<UserWithdraw/>}/>
