@@ -1,3 +1,4 @@
+dotenv.config()
 import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
@@ -5,7 +6,6 @@ import authRouter from "./src/modules/auth/auth.routes.js";
 import { connectDb } from "./src/config/db.js";
 import marketRoutes from "./src/modules/market/market.routes.js";
 
-dotenv.config()
 const app = express();
 const PORT = process.env.PORT
 app.use(cors())
