@@ -56,11 +56,11 @@ const Register = () => {
       {/* Heading */}
       <div className="text-center mb-8">
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900">
-          Welcome Back
+          Welcome To Upfund
         </h1>
 
         <p className="text-base sm:text-lg text-gray-500 mt-2">
-          Log in to your account
+          Create an account to get started
         </p>
       </div>
 
@@ -216,24 +216,24 @@ const Register = () => {
             />
           </div>
 
-          {/* Login Button */}
+          {/* Create Button */}
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3.5 bg-green-500 text-white rounded-lg font-medium hover:bg-green-400 active:bg-gray-950 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
         {/* Register */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <Link
-            to="/register"
+            to="/"
             className="font-medium text-green-500 hover:underline"
           >
-            Create One
+            Login
           </Link>
         </p>
       </div>
