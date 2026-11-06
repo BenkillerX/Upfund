@@ -56,7 +56,7 @@ const Login = () => {
       {/* Heading */}
       <div className="text-center mb-8">
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900">
-          Welcome Back
+          Welcome Back To Upfund
         </h1>
 
         <p className="text-base sm:text-lg text-gray-500 mt-2">
@@ -196,7 +196,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-green-500 text-white rounded-lg font-medium hover:bg-green-400 active:bg-gray-950 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 active:bg-gray-950 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Log in"}
           </button>
@@ -207,7 +207,7 @@ const Login = () => {
           Don't have an account?{" "}
           <Link
             to="/register"
-            className="font-medium text-green-500 hover:underline"
+            className="font-medium text-slate-500 hover:underline"
           >
             Create One
           </Link>
