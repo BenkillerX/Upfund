@@ -11,52 +11,62 @@ export const AuthProvider = ({
   const [loading, setLoading] = useState(true);
 
   // Restore logged-in user when the app is refreshed
-  useEffect(() => {
-    let cancelled = false;
 
-    const restoreUser = async () => {
-      const token = localStorage.getItem("token");
 
-      // No token means no authenticated user.
-      // Do not make an API request.
-      if (!token) {
-        setCurrentUser(null);
+useEffect(() => {
+  let cancelled = false;
+
+  const restoreUser = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setCurrentUser(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await api.get("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (cancelled) return;
+
+      const user = response.data.user;
+
+      if (!user) {
+        throw new Error("User data was not returned.");
+      }
+
+      setCurrentUser(user);
+
+    } catch (error) {
+      if (cancelled) return;
+
+      console.error("Failed to restore user:", error);
+
+      setCurrentUser(null);
+      localStorage.removeItem("token");
+
+    } finally {
+      if (!cancelled) {
         setLoading(false);
-        return;
       }
+    }
+  };
 
-      try {
-        const response = await api.get("/api/auth/me");
+  restoreUser();
 
-        if (cancelled) return;
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
-        setCurrentUser(response.data.user);
-      } catch (error) {
-        if (cancelled) return;
-
-        console.error("Failed to restore user:", error);
-
-        setCurrentUser(null);
-        localStorage.removeItem("token");
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    restoreUser();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Login existing user
-const login = async (
-  email: string,
-  password: string
-): Promise<User> => {
+const login = async ( email: string, password: string ): Promise<User> => {
   const response = await api.post(
     "/api/auth/login",
     {
@@ -81,11 +91,7 @@ const login = async (
 };
 
   // Register User
-  const register = async (
-    username: string,
-    email: string,
-    password: string
-  ): Promise<User> => {
+  const register = async ( username: string, email: string, password: string ): Promise<User> => {
     const response = await api.post("/api/auth/register", {
       username,
       email,
@@ -117,3 +123,69 @@ const login = async (
     </AuthContext.Provider>
   );
 };
+
+//   // Login existing user
+// const login = async (
+//   email: string,
+//   password: string
+// ): Promise<User> => {
+//   const response = await api.post(
+//     "/api/auth/login",
+//     {
+//       email,
+//       password,
+//     },
+//     {
+//       timeout: 15000,
+//     }
+//   );
+
+//   const { token, user } = response.data;
+
+//   if (!token || !user) {
+//     throw new Error("Invalid login response.");
+//   }
+
+//   localStorage.setItem("token", token);
+//   setCurrentUser(user);
+
+//   return user;
+// };
+
+//   // Register User
+//   const register = async (
+//     username: string,
+//     email: string,
+//     password: string
+//   ): Promise<User> => {
+//     const response = await api.post("/api/auth/register", {
+//       username,
+//       email,
+//       password,
+//     });
+
+//     const user: User = response.data.user;
+
+//     return user;
+//   };
+
+//   // Logout
+//   const logout = (): void => {
+//     setCurrentUser(null);
+//     localStorage.removeItem("token");
+//   };
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         currentUser,
+//         login,
+//         logout,
+//         loading,
+//         register,
+//       }}
+//     >
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };

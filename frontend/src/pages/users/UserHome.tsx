@@ -1,81 +1,21 @@
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Eye,
-  EyeOff,
-  Plus,
-  Clock3,
-  Hand 
-} from "lucide-react"
-import { useState } from "react"
+import { ArrowDownToLine, ArrowUpFromLine, Plus, Clock3,} from "lucide-react"
 import LiveTradingChart from "./LiveTradingChart"
+import UserHeader from "./UserHeader"
+import UserBalance from "./UserBalance"
 
 const UserHome = () => {
-  const [showBalance, setShowBalance] = useState(true)
-
-  const balance = "₦250,000.00"
+ 
+    
 
   return (
  <div className="min-h-screen bg-gray-50">
   <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
 
     {/* Header */}
-    <div className="mb-6 flex items-center justify-between">
-      <div>
-        <p className="text-sm text-gray-500">Good afternoon,</p>
-
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
-        Benedict
-        <Hand className="h-5 w-5 text-amber-500" />
-        </h1>
-      </div>
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 font-semibold text-amber-600">
-        B
-      </div>
-    </div>
+    <UserHeader />
 
     {/* Balance Card */}
-    <div className="rounded-2xl bg-slate-800 p-5 text-white shadow-sm sm:p-6 lg:p-7">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-300">
-          Available Balance
-        </p>
-
-        <button
-          onClick={() => setShowBalance(!showBalance)}
-          className="rounded-full p-2 transition hover:bg-white/10"
-        >
-          {showBalance ? (
-            <Eye size={19} />
-          ) : (
-            <EyeOff size={19} />
-          )}
-        </button>
-      </div>
-
-      <div className="mt-2">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {showBalance ? balance : "••••••••"}
-        </h2>
-      </div>
-
-      <div className="mt-6 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-slate-400">
-            UpFund Wallet
-          </p>
-
-          <p className="mt-1 text-sm font-medium">
-            **** 4821
-          </p>
-        </div>
-
-        <p className="text-xs text-slate-400">
-          Last updated just now
-        </p>
-      </div>
-    </div>
+    <UserBalance/>
     <LiveTradingChart/>
 
     {/* Quick Actions */}

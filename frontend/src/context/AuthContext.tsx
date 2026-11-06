@@ -2,10 +2,10 @@ import { createContext } from "react";
 
 export interface User {
     id: string;
-    firstname: string;
-    lastname: string;
+    username: string;
     email: string;
     role: "user" | "admin";
+    balance: number;
 }
 
 export interface AuthContextType {

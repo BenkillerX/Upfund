@@ -1,15 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import {
-  FiHome,
-  FiDownload,
-  FiUpload,
-  FiSettings,
-  FiLogOut,
-  FiChevronLeft,
-  FiChevronRight,
-  FiUsers
-} from "react-icons/fi"
+import { FiHome, FiDownload, FiUpload, FiSettings, FiLogOut, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi"
 
 import SidebarLink from "./SidebarLink"
 import { useAuth } from "../../context/useAuth"
@@ -21,8 +12,9 @@ const UserSiderBar = () => {
   const navigate = useNavigate()
 
   const userInitial =
-    currentUser?.firstname?.charAt(0).toUpperCase() || "?"
-
+  currentUser?.username?.charAt(0).toUpperCase() || "?"
+  console.log(userInitial);
+  
   const handleLogout = () => {
     logout()
     navigate("/")
@@ -106,16 +98,7 @@ const UserSiderBar = () => {
         >
           {/* User Initial */}
           <div
-            className="
-              w-11 h-11
-              rounded-full
-              bg-amber-100
-              text-amber-600
-              flex items-center justify-center
-              font-semibold
-              text-lg
-              shrink-0
-            "
+            className=" w-11 h-11 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-semibold text-lg shrink-0 "
           >
             {userInitial}
           </div>
@@ -123,7 +106,7 @@ const UserSiderBar = () => {
           {!isCollapsed && (
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-slate-800 truncate">
-                {currentUser?.firstname} {currentUser?.lastname}
+                {currentUser?.username || "User"}
               </h2>
 
               <p className="text-xs text-slate-500">
@@ -134,13 +117,7 @@ const UserSiderBar = () => {
 
           {!isCollapsed && (
             <button
-              className="
-                ml-auto
-                p-1
-                text-slate-400
-                hover:text-slate-700
-                transition
-              "
+              className=" ml-auto p-1 text-slate-400 hover:text-slate-700 transition "
             >
               <FiChevronRight />
             </button>
