@@ -7,11 +7,12 @@ import UserWithdraw from "./pages/users/UserWithdraw"
 import UserDeposits from "./pages/users/UserDeposits"
 import UserSettings from "./pages/users/UserSettings"
 import UserReferrals from "./pages/users/UserReferrals"
-
+import  { Toaster } from "react-hot-toast";
 function App() {
 
   return (
     <>
+    <Toaster position="top-right" />
       <Routes>
         <Route element={<UsersLayout/>}>
           <Route path="/user/" element={<UserHome/>}/>

@@ -5,8 +5,8 @@ import { authenticateToken } from "../../middlewares/auth.middleware.js";
 
 const authRouter = Router()
 authRouter.post('/register', registerValidator, register)
-authRouter.post('login', login)
-authRouter.post('/me', authenticateToken,getCurrentUser)
+authRouter.post('/login', login)
+authRouter.get('/me', authenticateToken,getCurrentUser)
 
 
 export default authRouter;

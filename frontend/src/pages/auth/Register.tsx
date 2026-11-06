@@ -2,54 +2,70 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/useAuth";
-
+import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 const Register = () => {
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
+  const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  setError(null);
 
-    // Remove previous error
-    setError(null);
-
-    // Basic frontend validation
-    if (!email || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const user = await login(email, password)
-      if (user.role === "tenant") {
-        navigate("/tenant/");
-      } else if (user.role === "propertyOwner") { 
-        navigate("/owner/dashboard");
-      } else if (user.role === "skillProvider") {
-        navigate("/provider/dashboard");
-      } else if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      }
-
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(
-          error.response?.data?.message ||
-            "Unable to log in. Please check your credentials."
-        );
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  if (!username || !email || !password) {
+    setError("Please fill in all required fields.");
+    return;
   }
+
+  setLoading(true);
+
+  const toastId = toast.loading("Creating account...");
+
+  try {
+    const user = await register(username, email, password);
+    console.log("Registration response:", user);
+console.log("User role:", user?.role);
+    toast.success("Registration successful!", {
+      id: toastId,
+    });
+
+    if (user.role === "user") {
+      navigate("/user/");
+    } else if (user.role === "admin") {
+      navigate("/admin/dashboard");
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const message =
+        error.response?.data?.message ||
+        "Unable to create your account.";
+
+      setError(message);
+
+      toast.error(message, {
+        id: toastId,
+      });
+    } else {
+      const message = "Something went wrong. Please try again.";
+
+      setError(message);
+      console.log(message);
+      
+      toast.error(message, {
+        id: toastId,
+      });
+    }
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <section className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8">
@@ -64,7 +80,7 @@ const Register = () => {
         </p>
       </div>
 
-      {/* Login Card */}
+      {/* Register Card */}
       <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-8">
 
         {/* Error Message */}
@@ -131,32 +147,33 @@ const Register = () => {
         </div>
 
         {/* Form */}
-        <form className="space-y-5" onSubmit={handleLogin}>
+        <form className="space-y-5" onSubmit={handleRegister}>
 
           {/* username */}
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="username"
-              className="text-sm font-medium text-gray-700"
-            >
-              Username
-            </label>
+         <div className="flex flex-col gap-2">
+  <label
+    htmlFor="username"
+    className="text-sm font-medium text-gray-700"
+  >
+    Username
+  </label>
 
-            <input
-              id="username"
-              type="text"
-              placeholder="Albert Einsine"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg outline-none transition
-                ${
-                  error
-                    ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
-                    : "border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
-                }
-                placeholder:text-gray-400`}
-            />
-          </div>
+  <input
+    id="username"
+    type="text"
+    placeholder="Albert Einsine"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+    className={`w-full px-4 py-3 border rounded-lg outline-none transition
+      ${
+        error
+          ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+          : "border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+      }
+      placeholder:text-gray-400`}
+  />
+</div>
+
           {/* Email */}
           <div className="flex flex-col gap-2">
             <label
@@ -183,44 +200,35 @@ const Register = () => {
           </div>
 
           {/* Password */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
+          <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
+          />
 
-              <button
-                type="button"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg outline-none transition
-                ${
-                  error
-                    ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
-                    : "border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
-                }
-                placeholder:text-gray-400`}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <EyeOff size={20} />
+            ) : (
+              <Eye size={20} />
+            )}
+          </button>
+        </div>
 
           {/* Create Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-green-500 text-white rounded-lg font-medium hover:bg-green-400 active:bg-gray-950 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 active:bg-gray-950 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Creating account..." : "Create Account"}
           </button>
@@ -231,7 +239,7 @@ const Register = () => {
           Already have an account?{" "}
           <Link
             to="/"
-            className="font-medium text-green-500 hover:underline"
+            className="font-medium text-slate-500 hover:underline"
           >
             Login
           </Link>

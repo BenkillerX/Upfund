@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/useAuth";
+import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const { login } = useAuth();
@@ -11,45 +13,53 @@ const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  setError(null);
 
-    // Remove previous error
-    setError(null);
-
-    // Basic frontend validation
-    if (!email || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const user = await login(email, password)
-      if (user.role === "tenant") {
-        navigate("/tenant/");
-      } else if (user.role === "propertyOwner") {
-        navigate("/owner/dashboard");
-      } else if (user.role === "skillProvider") {
-        navigate("/provider/dashboard");
-      } else if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      }
-
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(
-          error.response?.data?.message ||
-            "Unable to log in. Please check your credentials."
-        );
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  if (!email.trim() || !password) {
+    setError("Please enter your email and password.");
+    toast.error("Please enter your email and password.");
+    return;
   }
+
+  const toastId = toast.loading("Logging in...");
+
+  try {
+    setLoading(true);
+
+    const user = await login(email, password);
+
+    if (user.role === "user") {
+      toast.success("Welcome back!", { id: toastId });
+      navigate("/user/", { replace: true });
+    } else if (user.role === "admin") {
+      toast.success("Welcome back, Admin!", { id: toastId });
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      throw new Error("Your account has an unsupported role.");
+    }
+  } catch (error: unknown) {
+    let message = "Something went wrong. Please try again.";
+
+    if (axios.isAxiosError(error)) {
+      message =
+        error.response?.data?.message ||
+        (error.code === "ECONNABORTED"
+          ? "Login request timed out. Please try again."
+          : "Unable to log in. Please check your credentials.");
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    setError(message);
+    toast.error(message, { id: toastId });
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <section className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8">
@@ -159,38 +169,50 @@ const Login = () => {
           </div>
 
           {/* Password */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
+    {/* Password */}
+        <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-gray-700"
+          >
+            Password
+          </label>
 
-              <button
-                type="button"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Forgot password?
-              </button>
-            </div>
+          <button
+            type="button"
+            className="text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Forgot password?
+          </button>
+        </div>
 
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg outline-none transition
-                ${
-                  error
-                    ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
-                    : "border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
-                }
-                placeholder:text-gray-400`}
-            />
-          </div>
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={`w-full px-4 py-3 pr-12 border rounded-lg outline-none transition
+              ${
+                error
+                  ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                  : "border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              }
+              placeholder:text-gray-400`}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+        </div>
 
           {/* Login Button */}
           <button
