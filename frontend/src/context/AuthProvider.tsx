@@ -11,13 +11,13 @@ export const AuthProvider = ({
   const [loading, setLoading] = useState(true);
 
   // Restore logged-in user when the app is refreshed
-
-
 useEffect(() => {
   let cancelled = false;
 
   const restoreUser = async () => {
     const token = localStorage.getItem("token");
+
+    console.log("Stored token:", token ? "Found" : "Missing");
 
     if (!token) {
       setCurrentUser(null);
@@ -31,6 +31,8 @@ useEffect(() => {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log("Current user API response:", response.data);
 
       if (cancelled) return;
 
@@ -48,8 +50,8 @@ useEffect(() => {
       console.error("Failed to restore user:", error);
 
       setCurrentUser(null);
-      localStorage.removeItem("token");
 
+      // Temporarily preserve token for debugging.
     } finally {
       if (!cancelled) {
         setLoading(false);
@@ -67,16 +69,12 @@ useEffect(() => {
 
   // Login existing user
 const login = async ( email: string, password: string ): Promise<User> => {
-  const response = await api.post(
-    "/api/auth/login",
-    {
-      email,
-      password,
-    },
-    {
-      timeout: 15000,
-    }
-  );
+  const response = await api.post("/api/auth/login", {
+    email,
+    password,
+  });
+
+  console.log("Login response:", response.data);
 
   const { token, user } = response.data;
 
@@ -85,6 +83,9 @@ const login = async ( email: string, password: string ): Promise<User> => {
   }
 
   localStorage.setItem("token", token);
+
+  console.log("Saved token:", localStorage.getItem("token"));
+
   setCurrentUser(user);
 
   return user;
@@ -97,12 +98,43 @@ const login = async ( email: string, password: string ): Promise<User> => {
       email,
       password,
     });
+  const { token, user } = response.data;
+  if (!token || !user) {
+    throw new Error("Invalid registration response.");
+  }
 
-    const user: User = response.data.user;
+  localStorage.setItem("token", token);
+
+    // const user: User = response.data.user;
+  setCurrentUser(user);
 
     return user;
   };
+  //Update account details
+const updateBankAccount = async (bankAccount: { accountName: string; accountNumber: string; bankName: string; }) => {
+  const response = await api.patch(
+    "/api/auth/bank-account",
+    bankAccount
+  );
 
+  setCurrentUser((prev) =>
+    prev
+      ? { ...prev, bankAccount: response.data.bankAccount }
+      : prev
+  );
+
+  return response.data;
+};
+const updateProfile = async (profile: { username: string; phoneNumber: string; }) => {
+  const response = await api.patch(
+    "/api/auth/profile",
+    profile
+  );
+
+  setCurrentUser(response.data.user);
+
+  return response.data;
+};
   // Logout
   const logout = (): void => {
     setCurrentUser(null);
@@ -117,75 +149,11 @@ const login = async ( email: string, password: string ): Promise<User> => {
         logout,
         loading,
         register,
+        updateBankAccount,
+        updateProfile,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
-//   // Login existing user
-// const login = async (
-//   email: string,
-//   password: string
-// ): Promise<User> => {
-//   const response = await api.post(
-//     "/api/auth/login",
-//     {
-//       email,
-//       password,
-//     },
-//     {
-//       timeout: 15000,
-//     }
-//   );
-
-//   const { token, user } = response.data;
-
-//   if (!token || !user) {
-//     throw new Error("Invalid login response.");
-//   }
-
-//   localStorage.setItem("token", token);
-//   setCurrentUser(user);
-
-//   return user;
-// };
-
-//   // Register User
-//   const register = async (
-//     username: string,
-//     email: string,
-//     password: string
-//   ): Promise<User> => {
-//     const response = await api.post("/api/auth/register", {
-//       username,
-//       email,
-//       password,
-//     });
-
-//     const user: User = response.data.user;
-
-//     return user;
-//   };
-
-//   // Logout
-//   const logout = (): void => {
-//     setCurrentUser(null);
-//     localStorage.removeItem("token");
-//   };
-
-//   return (
-//     <AuthContext.Provider
-//       value={{
-//         currentUser,
-//         login,
-//         logout,
-//         loading,
-//         register,
-//       }}
-//     >
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };

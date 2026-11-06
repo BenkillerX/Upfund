@@ -1,15 +1,45 @@
-import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiLock,
-  FiCreditCard,
-  FiBell,
-  FiChevronRight,
-  FiLogOut,
-} from "react-icons/fi"
+import { FiUser, FiMail, FiPhone, FiLock, FiCreditCard, FiBell, FiChevronRight, FiLogOut, } from "react-icons/fi"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../context/useAuth"
+import { useState } from "react"
 
 const UserSettings = () => {
+    const { logout, updateBankAccount, updateProfile, currentUser } = useAuth();
+    const [showBankForm, setShowBankForm] = useState(false);
+const [accountName, setAccountName] = useState("");
+const [accountNumber, setAccountNumber] = useState("");
+const [bankName, setBankName] = useState("");
+const [saving, setSaving] = useState(false);
+
+
+const [showProfileForm, setShowProfileForm] = useState(false);
+const [username, setUsername] = useState("");
+const [phoneNumber, setPhoneNumber] = useState("");
+const [savingProfile, setSavingProfile] = useState(false);
+  const navigate = useNavigate()
+    const handleLogout = () => {
+    logout()
+    navigate("/")
+  }
+  const handleEditProfile = () => {
+  setUsername(currentUser?.username ?? "");
+  setPhoneNumber(currentUser?.phoneNumber ?? "");
+  setShowProfileForm(true);
+};
+const handleProfileSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSavingProfile(true);
+
+  try {
+    await updateProfile({ username, phoneNumber });
+    setShowProfileForm(false);
+  } catch (error) {
+    console.error("Failed to update profile:", error);
+  } finally {
+    setSavingProfile(false);
+  }
+};
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
@@ -28,158 +58,142 @@ const UserSettings = () => {
 
         {/* Profile */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+  <div className="p-5 border-b border-gray-100">
+    <h2 className="font-semibold text-slate-800">
+      Profile Information
+    </h2>
 
-          <div className="p-5 border-b border-gray-100">
-            <h2 className="font-semibold text-slate-800">
-              Profile Information
-            </h2>
+    <p className="text-sm text-slate-500 mt-1">
+      Your personal account information.
+    </p>
+  </div>
 
-            <p className="text-sm text-slate-500 mt-1">
-              Your personal account information.
-            </p>
-          </div>
+  <div className="p-5">
+    {/* Avatar */}
+    <div className="flex items-center gap-4 mb-6">
+      <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold">
+        {currentUser?.username?.charAt(0).toUpperCase() || "U"}
+      </div>
 
-          <div className="p-5">
+      <div>
+        <h3 className="font-semibold text-slate-800">
+          {currentUser?.username}
+        </h3>
 
-            {/* Avatar */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="
-                w-14 h-14
-                rounded-full
-                bg-amber-100
-                text-amber-600
-                flex items-center justify-center
-                text-xl
-                font-bold
-              ">
-                B
-              </div>
+        <p className="text-sm text-slate-500">
+          UpFund User
+        </p>
+      </div>
+    </div>
 
-              <div>
-                <h3 className="font-semibold text-slate-800">
-                  Benedict
-                </h3>
+    {/* Information */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          Username
+        </label>
 
-                <p className="text-sm text-slate-500">
-                  UpFund User
-                </p>
-              </div>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+          <FiUser className="text-slate-400" />
+          <span className="text-sm text-slate-700">
+            {currentUser?.username}
+          </span>
+        </div>
+      </div>
 
-              <button className="
-                ml-auto
-                px-4 py-2
-                rounded-lg
-                border border-gray-200
-                text-sm font-medium
-                text-slate-600
-                hover:bg-slate-50
-                transition
-              ">
-                Change
-              </button>
-            </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          Email
+        </label>
 
-            {/* Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+          <FiMail className="text-slate-400" />
+          <span className="text-sm text-slate-700 truncate">
+            {currentUser?.email}
+          </span>
+        </div>
+      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  First Name
-                </label>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          Phone Number
+        </label>
 
-                <div className="
-                  flex items-center gap-3
-                  px-4 py-3
-                  rounded-xl
-                  bg-gray-50
-                  border border-gray-200
-                ">
-                  <FiUser className="text-slate-400" />
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+          <FiPhone className="text-slate-400" />
+          <span className="text-sm text-slate-700">
+            {currentUser?.phoneNumber || "Not added"}
+          </span>
+        </div>
+      </div>
+    </div>
 
-                  <span className="text-sm text-slate-700">
-                    Benedict
-                  </span>
-                </div>
-              </div>
+    <button
+      onClick={handleEditProfile}
+      className="mt-5 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium transition"
+    >
+      Edit Profile
+    </button>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Last Name
-                </label>
+    {/* Edit Form */}
+    {showProfileForm && (
+      <form
+        onSubmit={handleProfileSubmit}
+        className="mt-6 pt-5 border-t border-gray-100 space-y-4"
+      >
+        <h3 className="font-semibold text-slate-800">
+          Edit Profile
+        </h3>
 
-                <div className="
-                  flex items-center gap-3
-                  px-4 py-3
-                  rounded-xl
-                  bg-gray-50
-                  border border-gray-200
-                ">
-                  <FiUser className="text-slate-400" />
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Username
+          </label>
 
-                  <span className="text-sm text-slate-700">
-                    Akhere
-                  </span>
-                </div>
-              </div>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-amber-500"
+          />
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email
-                </label>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Phone Number
+          </label>
 
-                <div className="
-                  flex items-center gap-3
-                  px-4 py-3
-                  rounded-xl
-                  bg-gray-50
-                  border border-gray-200
-                ">
-                  <FiMail className="text-slate-400" />
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Enter your phone number"
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-amber-500"
+          />
+        </div>
 
-                  <span className="text-sm text-slate-700 truncate">
-                    user@example.com
-                  </span>
-                </div>
-              </div>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={savingProfile}
+            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium disabled:opacity-50"
+          >
+            {savingProfile ? "Saving..." : "Save Changes"}
+          </button>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Phone Number
-                </label>
-
-                <div className="
-                  flex items-center gap-3
-                  px-4 py-3
-                  rounded-xl
-                  bg-gray-50
-                  border border-gray-200
-                ">
-                  <FiPhone className="text-slate-400" />
-
-                  <span className="text-sm text-slate-700">
-                    +234 800 000 0000
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-            <button className="
-              mt-5
-              px-5 py-2.5
-              rounded-xl
-              bg-slate-800
-              hover:bg-slate-700
-              text-white
-              text-sm
-              font-medium
-              transition
-            ">
-              Edit Profile
-            </button>
-
-          </div>
-        </section>
+          <button
+            type="button"
+            onClick={() => setShowProfileForm(false)}
+            className="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    )}
+  </div>
+</section>
 
         {/* Account & Security */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -227,21 +241,12 @@ const UserSettings = () => {
               <FiChevronRight className="text-slate-400" />
             </button>
 
-            <button className="
-              w-full
-              flex items-center gap-4
-              p-5
-              text-left
-              hover:bg-gray-50
-              transition
-            ">
-              <div className="
-                w-10 h-10
-                rounded-xl
-                bg-amber-100
-                text-amber-600
-                flex items-center justify-center
-              ">
+            <button 
+            className=" w-full flex items-center gap-4 p-5 text-left hover:bg-gray-50 transition "
+            >
+              <div 
+              className=" w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center "
+              >
                 <FiBell />
               </div>
 
@@ -262,72 +267,111 @@ const UserSettings = () => {
         </section>
 
         {/* Bank Accounts */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+  <div className="p-5 border-b border-gray-100">
+    <h2 className="font-semibold text-slate-800">Bank Accounts</h2>
+    <p className="text-sm text-slate-500 mt-1">
+      Manage accounts used for withdrawals.
+    </p>
+  </div>
 
-          <div className="p-5 border-b border-gray-100">
-            <h2 className="font-semibold text-slate-800">
-              Bank Accounts
-            </h2>
+  <div className="p-5">
+    {currentUser?.bankAccount?.accountNumber ? (
+      <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-200">
+        <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+          <FiCreditCard />
+        </div>
 
-            <p className="text-sm text-slate-500 mt-1">
-              Manage accounts used for withdrawals.
-            </p>
-          </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-slate-800">
+            {currentUser.bankAccount.bankName}
+          </h3>
 
-          <div className="p-5">
+          <p className="text-xs text-slate-500 mt-1">
+            {currentUser.bankAccount.accountName}
+          </p>
 
-            <div className="
-              flex items-center gap-4
-              p-4
-              rounded-xl
-              border border-gray-200
-            ">
+          <p className="text-xs text-slate-500 mt-1">
+            **** **** {currentUser.bankAccount.accountNumber.slice(-4)}
+          </p>
+        </div>
+      </div>
+    ) : (
+      <p className="text-sm text-slate-500">
+        You haven't added a bank account yet.
+      </p>
+    )}
 
-              <div className="
-                w-11 h-11
-                rounded-xl
-                bg-amber-100
-                text-amber-600
-                flex items-center justify-center
-              ">
-                <FiCreditCard />
-              </div>
+    <button
+      onClick={() => setShowBankForm(!showBankForm)}
+      className="mt-4 text-sm font-medium text-amber-600 hover:text-amber-700"
+    >
+      {showBankForm ? "Cancel" : currentUser?.bankAccount?.accountNumber ? "Update Bank Account" : "+ Add Bank Account"}
+    </button>
 
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-slate-800">
-                  Access Bank
-                </h3>
+    {showBankForm && (
+      <form
+       onSubmit={async (e) => {
+  e.preventDefault();
+  setSaving(true);
 
-                <p className="text-xs text-slate-500 mt-1">
-                  **** **** 4821
-                </p>
-              </div>
+  try {
+    await updateBankAccount({
+      accountName,
+      accountNumber,
+      bankName,
+    });
 
-              <span className="
-                px-2.5 py-1
-                rounded-full
-                bg-green-100
-                text-green-600
-                text-xs
-                font-medium
-              ">
-                Verified
-              </span>
+    setShowBankForm(false);
+    setAccountName("");
+    setAccountNumber("");
+    setBankName("");
+  } catch (error) {
+    console.error("Failed to save bank account:", error);
+  } finally {
+    setSaving(false);
+  }
+}}
+        className="mt-5 space-y-4"
+      >
+        <input
+          value={accountName}
+          onChange={(e) => setAccountName(e.target.value)}
+          placeholder="Account Name"
+          required
+          className="w-full border rounded-lg p-3 text-sm"
+        />
 
-            </div>
+        <input
+          value={accountNumber}
+          onChange={(e) => setAccountNumber(e.target.value)}
+          placeholder="Account Number"
+          inputMode="numeric"
+          type="number"
+          maxLength={10}
+          required
+          className="w-full border rounded-lg p-3 text-sm"
+        />
 
-            <button className="
-              mt-4
-              text-sm
-              font-medium
-              text-amber-600
-              hover:text-amber-700
-            ">
-              + Add Bank Account
-            </button>
+        <input
+          value={bankName}
+          onChange={(e) => setBankName(e.target.value)}
+          placeholder="Bank Name"
+          required
+          className="w-full border rounded-lg p-3 text-sm"
+        />
 
-          </div>
-        </section>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full bg-amber-500 text-white rounded-lg p-3 text-sm font-medium disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Bank Account"}
+        </button>
+      </form>
+    )}
+  </div>
+</section>
 
         {/* Danger Zone */}
         <section className="bg-white rounded-2xl border border-red-100 shadow-sm">
@@ -340,17 +384,10 @@ const UserSettings = () => {
 
           <div className="p-5">
 
-            <button className="
-              flex items-center gap-3
-              px-4 py-3
-              rounded-xl
-              bg-red-50
-              text-red-600
-              hover:bg-red-100
-              text-sm
-              font-medium
-              transition
-            ">
+            <button 
+            className=" flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium transition"
+            onClick={handleLogout}
+            >
               <FiLogOut />
 
               Log out of all devices

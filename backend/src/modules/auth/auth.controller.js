@@ -31,12 +31,14 @@ export async function register(req, res) {
     return res.status(201).json({
       message: "User registered successfully.",
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
+        user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      balance: user.balance,
+      bankAccount: user.bankAccount,
+    },
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -85,11 +87,13 @@ export async function login(req, res) {
   message: "Login successful.",
   token,
   user: {
-    id: user._id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-  },
+  id: user._id,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+  balance: user.balance,
+  bankAccount: user.bankAccount,
+},
 });
   } catch (error) {
     console.error("Login error:", error);
@@ -102,7 +106,15 @@ export async function login(req, res) {
 
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized. User ID not found.",
+      });
+    }
+
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -111,6 +123,7 @@ export const getCurrentUser = async (req, res) => {
     }
 
     return res.status(200).json({
+      message: "User retrieved successfully",
       user,
     });
 
@@ -119,6 +132,108 @@ export const getCurrentUser = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to retrieve user",
+    });
+  }
+};
+
+export const updateBankAccount = async (req, res) => {
+  try {
+    const { accountName, accountNumber, bankName } = req.body;
+
+    if (!accountName || !accountNumber || !bankName) {
+      return res.status(400).json({
+        message: "All bank account fields are required.",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      {
+        bankAccount: {
+          accountName: accountName.trim(),
+          accountNumber: accountNumber.trim(),
+          bankName: bankName.trim(),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Bank account updated successfully.",
+      user,
+    });
+  } catch (error) {
+    console.error("Update bank account error:", error);
+
+    return res.status(500).json({
+      message: "Failed to update bank account.",
+    });
+  }
+};
+export const updateProfile = async (req, res) => {
+  try {
+    const { username, phoneNumber } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized.",
+      });
+    }
+
+    if (!username?.trim()) {
+      return res.status(400).json({
+        message: "Username is required.",
+      });
+    }
+
+    const existingUsername = await User.findOne({
+      username: username.trim(),
+      _id: { $ne: userId },
+    });
+
+    if (existingUsername) {
+      return res.status(409).json({
+        message: "Username is already taken.",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        username: username.trim(),
+        phoneNumber: phoneNumber?.trim() || null,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Profile updated successfully.",
+      user,
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+
+    return res.status(500).json({
+      message: "Failed to update profile.",
     });
   }
 };

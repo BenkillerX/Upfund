@@ -4,7 +4,7 @@ import UserHeader from "./UserHeader"
 import UserBalance from "./UserBalance"
 
 const UserHome = () => {
- 
+
     
 
   return (

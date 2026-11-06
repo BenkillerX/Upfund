@@ -22,35 +22,15 @@ const UserSiderBar = () => {
 
   return (
     <aside
-      className={`
-        hidden md:flex
-        h-screen
-        sticky top-0
-        flex-col
-        bg-white
-        border-r border-gray-200
-        transition-all duration-300
-        shrink-0
-        ${isCollapsed ? "w-20" : "w-64"}
-      `}
+      className={` hidden md:flex h-screen sticky top-0 flex-col bg-white border-r border-gray-200 transition-all duration-300 shrink-0 ${isCollapsed ? "w-20" : "w-64"} `}
     >
       {/* Header */}
    <div
-  className={`
-    relative
-    flex items-center
-    h-18
-    px-4
-    border-b border-gray-100
-    ${isCollapsed ? "justify-center" : "justify-between"}
-  `}
+  className={` relative flex items-center h-18 px-4 border-b border-gray-100 ${isCollapsed ? "justify-center" : "justify-between"} `}
 >
   {/* Logo */}
   <div
-    className={`
-      flex items-center
-      ${isCollapsed ? "justify-center" : "gap-2"}
-    `}
+    className={` flex items-center ${isCollapsed ? "justify-center" : "gap-2"} `}
   >
     <img
       src="/logo2.png"
@@ -68,15 +48,7 @@ const UserSiderBar = () => {
   {/* Collapse Button */}
   <button
     onClick={() => setIsCollapsed((prev) => !prev)}
-    className={`
-      p-2
-      rounded-lg
-      text-slate-500
-      hover:bg-slate-100
-      hover:text-slate-800
-      transition
-      ${isCollapsed ? "absolute right-2" : ""}
-    `}
+    className={` p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition ${isCollapsed ? "absolute right-2" : ""} `}
     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
   >
     {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
@@ -108,10 +80,6 @@ const UserSiderBar = () => {
               <h2 className="text-sm font-semibold text-slate-800 truncate">
                 {currentUser?.username || "User"}
               </h2>
-
-              <p className="text-xs text-slate-500">
-                User
-              </p>
             </div>
           )}
 

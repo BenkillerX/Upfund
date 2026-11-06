@@ -29,7 +29,25 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-
+    bankAccount: {
+  accountName: {
+    type: String,
+    default: null,
+  },
+  accountNumber: {
+    type: String,
+    default: null,
+  },
+  bankName: {
+    type: String,
+    default: null,
+  },
+  },
+  phoneNumber: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],

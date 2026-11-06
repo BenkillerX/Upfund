@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
@@ -7,8 +6,9 @@ const UserBalance = () => {
   const [showBalance, setShowBalance] = useState(true);
   const { currentUser } = useAuth();
 
-  const balance = currentUser?.balance ?? 0;
-
+  const balance = currentUser?.balance ?? 10;
+  console.log("Current user:", currentUser);
+console.log("Balance:", currentUser?.balance);
   const formattedBalance = new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
@@ -46,7 +46,7 @@ const UserBalance = () => {
       <div className="mt-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-slate-400">
-            UpFund Wallet
+            {currentUser?.username ?? "UpFund"} Wallet
           </p>
 
           <p className="mt-1 text-sm font-medium">

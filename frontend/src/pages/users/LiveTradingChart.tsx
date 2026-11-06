@@ -105,7 +105,7 @@ useEffect(() => {
         },
       });
 
-      console.log("Market API response:", response.data);
+      // console.log("Market API response:", response.data);
 
       const candles: CandlestickData<Time>[] =
   response.data.values.map((candle: TwelveDataCandle) => ({
@@ -125,7 +125,7 @@ useEffect(() => {
   };
 
   getCandles();
-}, [pair, timeframe]);
+}, [pair, timeframe, ]);
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white">
       {/* Chart Header */}
