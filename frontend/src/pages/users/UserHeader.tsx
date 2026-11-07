@@ -5,13 +5,16 @@ const UserHeader = () => {
   const { currentUser } = useAuth();
 
   const username = currentUser?.username || "User";
-
   const initial = username.charAt(0).toUpperCase();
+
+  const hour = new Date().getHours();
+
+  const greeting = hour < 12 ? "Good morning," : hour < 17 ? "Good afternoon," : "Good evening,";
 
   return (
     <div className="mb-6 flex items-center justify-between">
       <div>
-        <p className="text-sm text-gray-500">Good afternoon,</p>
+        <p className="text-sm text-gray-500">{greeting}</p>
 
         <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
           {username}

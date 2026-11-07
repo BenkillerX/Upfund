@@ -31,8 +31,6 @@ async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
 
   try {
     const user = await register( username, email, password, referralCode || undefined );
-    console.log("Registration response:", user);
-console.log("User role:", user?.role);
     toast.success("Registration successful!", {
       id: toastId,
     });
@@ -107,13 +105,6 @@ console.log("User role:", user?.role);
             <p>{error}</p>
           </div>
         )}
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-sm text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-200" />
-        </div>
 
         {/* Form */}
         <form className="space-y-5" onSubmit={handleRegister}>

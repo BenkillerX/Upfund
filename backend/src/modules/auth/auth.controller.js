@@ -37,6 +37,7 @@ export async function register(req, res) {
       password: hashedPassword,
       referralCode: generateReferralCode(),
       referredBy,
+      referralStatus: referredBy ? "pending" : undefined,
     });
 
     const token = generateToken(user);

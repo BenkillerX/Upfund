@@ -101,13 +101,6 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
           </div>
         )}
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-sm text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-200" />
-        </div>
-
         {/* Form */}
         <form className="space-y-5" onSubmit={handleLogin}>
 

@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -60,9 +59,10 @@ referredBy: {
   default: null,
 },
 
-referralQualified: {
-  type: Boolean,
-  default: false,
+referralStatus: {
+  type: String,
+  enum: ["pending", "qualified"],
+  default: "pending",
 },
 
 firstDepositAt: {

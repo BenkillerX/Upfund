@@ -1,7 +1,4 @@
 Unique referral code: Every user gets their own code.
-
-
-
 Referral tracking: When someone registers through a referral link, we record who referred them.
 
 Referral qualification: Track pending and qualified referrals.

@@ -1,14 +1,131 @@
-import {
-  FiArrowDown,
-  FiCreditCard,
-  FiClock,
-  FiCheckCircle,
-//   FiXCircle,
-} from "react-icons/fi"
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { FiArrowDown, FiCreditCard, FiClock, FiCheckCircle, } from "react-icons/fi";
+import { useAuth } from "../../context/useAuth";
+import api from "../../services/api";
+
+
 
 const UserDeposits = () => {
+  const { currentUser } = useAuth();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+
+  const balance = currentUser?.balance ?? 0;
+
+  const formattedBalance = new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(balance);
+
+  const quickAmounts = [5000, 10000, 25000, 50000];
+
+  // Verify payment after Paystack redirects back
+  useEffect(() => {
+    const reference = searchParams.get("reference");
+
+    if (!reference) return;
+
+    const verifyPayment = async () => {
+      setVerifying(true);
+
+      try {
+      await api.get(
+      `/api/payments/deposit/verify/${encodeURIComponent(reference)}`
+    );
+
+        toast.success("Deposit successful!");
+
+        setSearchParams({}, { replace: true });
+
+        // Reload to fetch the updated wallet balance.
+        window.location.reload();
+      } catch (error: unknown) {
+        let message = "Payment verification failed.";
+
+        if (axios.isAxiosError(error)) {
+          message =
+            error.response?.data?.message || message;
+        }
+
+        toast.error(message);
+        setSearchParams({}, { replace: true });
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    verifyPayment();
+  }, [searchParams, setSearchParams]);
+
+  // Initialize deposit
+  const handleDeposit = async () => {
+    const depositAmount = Number(amount);
+
+    if (
+      !Number.isSafeInteger(depositAmount) ||
+      depositAmount < 100 ||
+      depositAmount > 20000
+    ) {
+      toast.error("Deposit must be between ₦100 and ₦20,000.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+    const response = await api.post("/api/payments/deposit", {
+  amount: depositAmount,
+});
+
+      const authorizationUrl =
+        response.data.authorization_url;
+
+      if (!authorizationUrl) {
+        throw new Error("Payment URL was not returned.");
+      }
+
+      // Redirect to Paystack checkout
+      window.location.assign(authorizationUrl);
+    } catch (error: unknown) {
+      let message = "Unable to initialize deposit.";
+
+      if (axios.isAxiosError(error)) {
+        message =
+          error.response?.data?.message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      toast.error(message);
+      setLoading(false);
+    }
+  };
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent mx-auto" />
+
+          <p className="mt-4 text-slate-600 font-medium">
+            Verifying your payment...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
@@ -34,7 +151,7 @@ const UserDeposits = () => {
                 </p>
 
                 <h2 className="text-2xl font-bold text-slate-800 mt-1">
-                  ₦125,000.00
+                  {formattedBalance}
                 </h2>
               </div>
 
@@ -56,21 +173,18 @@ const UserDeposits = () => {
 
                 <input
                   type="number"
+                  min="100"
+                  max="20000"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="
-                    w-full
-                    pl-10 pr-4 py-3
-                    rounded-xl
-                    border border-gray-200
-                    bg-gray-50
-                    text-slate-800
-                    outline-none
-                    focus:border-amber-500
-                    focus:ring-2
-                    focus:ring-amber-100
-                  "
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
                 />
               </div>
+
+              <p className="text-xs text-slate-400 mt-2">
+                Minimum deposit: ₦100. Maximum deposit: ₦20,000.
+              </p>
             </div>
 
             {/* Quick Amounts */}
@@ -80,27 +194,20 @@ const UserDeposits = () => {
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {["₦5,000", "₦10,000", "₦25,000", "₦50,000"].map(
-                  (amount) => (
-                    <button
-                      key={amount}
-                      className="
-                        py-2.5
-                        rounded-lg
-                        border border-gray-200
-                        text-sm
-                        font-medium
-                        text-slate-600
-                        hover:border-amber-400
-                        hover:bg-amber-50
-                        hover:text-amber-600
-                        transition
-                      "
-                    >
-                      {amount}
-                    </button>
-                  )
-                )}
+                {quickAmounts.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAmount(String(value))}
+                    className={`py-2.5 rounded-lg border text-sm font-medium transition ${
+                      amount === String(value)
+                        ? "border-amber-500 bg-amber-50 text-amber-600"
+                        : "border-gray-200 text-slate-600 hover:border-amber-400 hover:bg-amber-50"
+                    }`}
+                  >
+                    ₦{value.toLocaleString("en-NG")}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -110,17 +217,7 @@ const UserDeposits = () => {
                 Payment Method
               </label>
 
-              <button
-                className="
-                  w-full
-                  flex items-center gap-3
-                  p-4
-                  rounded-xl
-                  border-2 border-amber-500
-                  bg-amber-50
-                  text-left
-                "
-              >
+              <div className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 text-left">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-amber-600">
                   <FiCreditCard />
                 </div>
@@ -134,23 +231,17 @@ const UserDeposits = () => {
                     Visa or Mastercard
                   </p>
                 </div>
-              </button>
+              </div>
             </div>
 
             {/* Deposit Button */}
             <button
-              className="
-                w-full
-                py-3.5
-                rounded-xl
-                bg-amber-500
-                hover:bg-amber-600
-                text-white
-                font-semibold
-                transition
-              "
+              type="button"
+              onClick={handleDeposit}
+              disabled={loading || !amount}
+              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Continue to Payment
+              {loading ? "Initializing Payment..." : "Continue to Payment"}
             </button>
 
           </div>
@@ -177,7 +268,6 @@ const UserDeposits = () => {
 
               <div className="flex gap-3">
                 <FiCheckCircle className="text-amber-400 mt-0.5 shrink-0" />
-
                 <p className="text-sm text-slate-300">
                   Secure payment processing
                 </p>
@@ -185,7 +275,6 @@ const UserDeposits = () => {
 
               <div className="flex gap-3">
                 <FiCheckCircle className="text-amber-400 mt-0.5 shrink-0" />
-
                 <p className="text-sm text-slate-300">
                   Instant wallet updates
                 </p>
@@ -193,7 +282,6 @@ const UserDeposits = () => {
 
               <div className="flex gap-3">
                 <FiCheckCircle className="text-amber-400 mt-0.5 shrink-0" />
-
                 <p className="text-sm text-slate-300">
                   Track all your deposits
                 </p>
@@ -217,68 +305,17 @@ const UserDeposits = () => {
           </p>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="p-8 text-center">
+          <FiClock className="mx-auto text-3xl text-slate-300" />
 
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                <FiCheckCircle />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-800">
-                  Wallet Deposit
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  Today, 10:42 AM
-                </p>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm font-semibold text-green-600">
-                +₦25,000
-              </p>
-
-              <p className="text-xs text-slate-400">
-                Successful
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
-                <FiClock />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-800">
-                  Wallet Deposit
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  Yesterday, 4:15 PM
-                </p>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm font-semibold text-slate-700">
-                +₦10,000
-              </p>
-
-              <p className="text-xs text-amber-600">
-                Pending
-              </p>
-            </div>
-          </div>
-
+          <p className="mt-3 text-sm text-slate-500">
+            Deposit history will appear here.
+          </p>
         </div>
+
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserDeposits
+export default UserDeposits;
