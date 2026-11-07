@@ -48,6 +48,27 @@ const userSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+   referralCode: {
+  type: String,
+  unique: true,
+  sparse: true,
+},
+
+referredBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+
+referralQualified: {
+  type: Boolean,
+  default: false,
+},
+
+firstDepositAt: {
+  type: Date,
+  default: null,
+},
     role: {
       type: String,
       enum: ["user", "admin"],

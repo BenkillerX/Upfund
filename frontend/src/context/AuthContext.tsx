@@ -13,6 +13,7 @@ export interface User {
     bankName: string | null;
   };
   phoneNumber: string | null;
+  referralCode: string;
 }
 
 export interface AuthContextType {
@@ -20,8 +21,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   logout: () => void;
   loading: boolean;
-  register: (username: string, email: string, password: string) => Promise<User>;
-
+ register: ( username: string, email: string, password: string, referralCode?: string ) => Promise<User>;
   updateBankAccount: (bankAccount: {
     accountName: string;
     accountNumber: string;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/useAuth";
 import { Eye, EyeOff } from "lucide-react";
@@ -7,7 +7,8 @@ import toast from "react-hot-toast";
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref");
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -29,7 +30,7 @@ async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
   const toastId = toast.loading("Creating account...");
 
   try {
-    const user = await register(username, email, password);
+    const user = await register( username, email, password, referralCode || undefined );
     console.log("Registration response:", user);
 console.log("User role:", user?.role);
     toast.success("Registration successful!", {

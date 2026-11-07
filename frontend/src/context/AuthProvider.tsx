@@ -92,12 +92,13 @@ const login = async ( email: string, password: string ): Promise<User> => {
 };
 
   // Register User
-  const register = async ( username: string, email: string, password: string ): Promise<User> => {
-    const response = await api.post("/api/auth/register", {
-      username,
-      email,
-      password,
-    });
+ const register = async ( username: string, email: string, password: string, referralCode?: string ) => {
+  const response = await api.post("/api/auth/register", {
+    username,
+    email,
+    password,
+    referralCode,
+  });
   const { token, user } = response.data;
   if (!token || !user) {
     throw new Error("Invalid registration response.");

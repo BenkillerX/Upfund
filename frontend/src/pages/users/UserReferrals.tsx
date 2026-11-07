@@ -1,14 +1,25 @@
-import {
-  FiUsers,
-  FiCopy,
-  FiCheckCircle,
-  FiClock,
-  FiShare2,
-} from "react-icons/fi"
+import { useState } from "react";;
+import { FiUsers, FiCopy, FiCheckCircle, FiClock, FiShare2, } from "react-icons/fi";
+import { useAuth } from "../../context/useAuth";
 
 const UserReferrals = () => {
-  const referralLink = "https://upfund.com/register?ref=BEN123"
+  const { currentUser } = useAuth();
+  const [copied, setCopied] = useState(false);
 
+  const referralLink = `${window.location.origin}/register?ref=${currentUser?.referralCode}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy referral link:", error);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
@@ -144,22 +155,18 @@ const UserReferrals = () => {
             {referralLink}
           </div>
 
-          <button
-            className="
-              flex items-center justify-center gap-2
-              px-5 py-3
-              rounded-xl
-              bg-amber-500
-              hover:bg-amber-600
-              text-white
-              text-sm
-              font-semibold
-              transition
-            "
-          >
-            <FiCopy />
-            Copy Link
-          </button>
+         <button
+          onClick={handleCopyLink}
+          className="
+            flex items-center justify-center gap-2
+            px-5 py-3 rounded-xl
+            bg-amber-500 hover:bg-amber-600
+            text-white text-sm font-semibold transition
+          "
+        >
+          {copied ? <FiCheckCircle /> : <FiCopy />}
+          {copied ? "Copied!" : "Copy Link"}
+        </button>
 
         </div>
 
@@ -237,15 +244,9 @@ const UserReferrals = () => {
 
             </div>
 
-            <span className="
-              flex items-center gap-1
-              px-2.5 py-1
-              rounded-full
-              bg-amber-100
-              text-amber-600
-              text-xs
-              font-medium
-            ">
+            <span 
+            className=" flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-medium "
+            >
               <FiClock />
               Pending
             </span>

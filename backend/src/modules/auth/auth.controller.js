@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
 import User from "../../models/User.js";
 import { generateToken } from "../../utils/generateToken.js";
+import { generateReferralCode } from "../../utils/generateReferralCode.js";
 
 export async function register(req, res) {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, referralCode } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -15,30 +15,45 @@ export async function register(req, res) {
       });
     }
 
-    // Hash password
+    let referredBy = null;
+
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode });
+
+      if (!referrer) {
+        return res.status(400).json({
+          message: "Invalid referral code.",
+        });
+      }
+
+      referredBy = referrer._id;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
+      referralCode: generateReferralCode(),
+      referredBy,
     });
 
-    // Generate JWT
     const token = generateToken(user);
 
     return res.status(201).json({
       message: "User registered successfully.",
       token,
-        user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      balance: user.balance,
-      bankAccount: user.bankAccount,
-    },
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        balance: user.balance,
+        bankAccount: user.bankAccount,
+        referralCode: user.referralCode,
+        referredBy: user.referredBy,
+      },
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -93,6 +108,7 @@ export async function login(req, res) {
   role: user.role,
   balance: user.balance,
   bankAccount: user.bankAccount,
+  referralCode: user.referralCode,
 },
 });
   } catch (error) {
