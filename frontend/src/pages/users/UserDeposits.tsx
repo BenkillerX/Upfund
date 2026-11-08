@@ -25,7 +25,7 @@ const UserDeposits = () => {
     minimumFractionDigits: 2,
   }).format(balance);
 
-  const quickAmounts = [5000, 10000, 25000, 50000];
+  const quickAmounts = [7000, 10000, 15000, 20000];
 
   // Verify payment after Paystack redirects back
   useEffect(() => {
@@ -66,48 +66,45 @@ const UserDeposits = () => {
   }, [searchParams, setSearchParams]);
 
   // Initialize deposit
-  const handleDeposit = async () => {
-    const depositAmount = Number(amount);
+ const handleDeposit = async () => {
+  const depositAmount = Number(amount);
 
-    if (
-      !Number.isSafeInteger(depositAmount) ||
-      depositAmount < 100 ||
-      depositAmount > 20000
-    ) {
-      toast.error("Deposit must be between ₦100 and ₦20,000.");
-      return;
-    }
+  if (
+    !Number.isSafeInteger(depositAmount) ||
+    depositAmount < 7000 ||
+    depositAmount > 20000
+  ) {
+    toast.error("Deposit must be between ₦7,000 and ₦20,000.");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
     const response = await api.post("/api/payments/deposit", {
-  amount: depositAmount,
-});
+      amount: depositAmount,
+    });
 
-      const authorizationUrl =
-        response.data.authorization_url;
+    const authorizationUrl = response.data.authorization_url;
 
-      if (!authorizationUrl) {
-        throw new Error("Payment URL was not returned.");
-      }
-
-      // Redirect to Paystack checkout
-      window.location.assign(authorizationUrl);
-    } catch (error: unknown) {
-      let message = "Unable to initialize deposit.";
-
-      if (axios.isAxiosError(error)) {
-        message =
-          error.response?.data?.message || message;
-      } else if (error instanceof Error) {
-        message = error.message;
-      }
-
-      toast.error(message);
-      setLoading(false);
+    if (!authorizationUrl) {
+      throw new Error("Payment URL was not returned.");
     }
-  };
+
+    window.location.assign(authorizationUrl);
+  } catch (error: unknown) {
+    let message = "Unable to initialize deposit.";
+
+    if (axios.isAxiosError(error)) {
+      message = error.response?.data?.message || message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    toast.error(message);
+    setLoading(false);
+  }
+};
 
   if (verifying) {
     return (
