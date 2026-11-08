@@ -8,10 +8,12 @@ import UserDeposits from "./pages/users/UserDeposits"
 import UserSettings from "./pages/users/UserSettings"
 import UserReferrals from "./pages/users/UserReferrals"
 import  { Toaster } from "react-hot-toast";
+import ScrollToTop from "./components/common/ScrollToTop"
 function App() {
 
   return (
     <>
+    <ScrollToTop />
     <Toaster position="top-right" />
       <Routes>
         <Route element={<UsersLayout/>}>

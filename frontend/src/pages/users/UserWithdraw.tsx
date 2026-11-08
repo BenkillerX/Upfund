@@ -1,12 +1,18 @@
-import {
-  FiArrowUp,
-  FiCreditCard,
-  FiCheckCircle,
-  FiClock,
-  FiAlertCircle,
-} from "react-icons/fi"
-
+import { FiArrowUp, FiCreditCard, FiCheckCircle, FiClock, FiAlertCircle, } from "react-icons/fi"
+import { useAuth } from "../../context/useAuth";
+import { useState } from "react";
 const UserWithdraw = () => {
+  const { currentUser } = useAuth();
+  const [amount, setAmount] = useState("");
+  const balance = currentUser?.balance ?? 0;
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(value);
+const quickAmounts = [7000, 10000, 15000, 20000];
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
@@ -35,7 +41,7 @@ const UserWithdraw = () => {
                 </p>
 
                 <h2 className="text-2xl font-bold text-slate-800 mt-1">
-                  ₦125,000.00
+                  {formatCurrency(balance)}
                 </h2>
               </div>
 
@@ -57,6 +63,8 @@ const UserWithdraw = () => {
 
                 <input
                   type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
                   className="
                     w-full
@@ -74,7 +82,7 @@ const UserWithdraw = () => {
               </div>
 
               <p className="text-xs text-slate-400 mt-2">
-                Available: ₦125,000.00
+                Available: {formatCurrency(balance)}
               </p>
             </div>
 
@@ -85,30 +93,28 @@ const UserWithdraw = () => {
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {["₦5,000", "₦10,000", "₦25,000", "₦50,000"].map(
-                  (amount) => (
-                    <button
-                      key={amount}
-                      className="
-                        py-2.5
-                        rounded-lg
-                        border border-gray-200
-                        text-sm
-                        font-medium
-                        text-slate-600
-                        hover:border-amber-400
-                        hover:bg-amber-50
-                        hover:text-amber-600
-                        transition
-                      "
-                    >
-                      {amount}
-                    </button>
-                  )
-                )}
+                {quickAmounts.map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => setAmount(String(amount))}
+                    className="
+                      py-2.5
+                      rounded-lg
+                      border border-gray-200
+                      text-sm
+                      font-medium
+                      text-slate-600
+                      hover:border-amber-400
+                      hover:bg-amber-50
+                      hover:text-amber-600
+                      transition
+                    "
+                  >
+                    ₦{amount.toLocaleString("en-NG")}
+                  </button>
+                ))}
               </div>
             </div>
-
             {/* Bank Account */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">

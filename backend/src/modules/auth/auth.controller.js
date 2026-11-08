@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import User from "../../models/User.js";
 import { generateToken } from "../../utils/generateToken.js";
 import { generateReferralCode } from "../../utils/generateReferralCode.js";
+import Deposit from "../../models/Deposit.js";
+import mongoose from "mongoose";
 
 export async function register(req, res) {
   try {
@@ -251,6 +253,96 @@ export const updateProfile = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to update profile.",
+    });
+  }
+};
+export const getReferralStats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const totalReferrals = await User.countDocuments({
+      referredBy: userId,
+    });
+
+    const qualified = await User.countDocuments({
+      referredBy: userId,
+      referralStatus: "qualified",
+    });
+
+    const pending = totalReferrals - qualified;
+
+    return res.status(200).json({
+      totalReferrals,
+      qualified,
+      pending,
+    });
+  } catch (error) {
+    console.error("Get referral stats error:", error);
+
+    return res.status(500).json({
+      message: "Failed to retrieve referral statistics.",
+    });
+  }
+};
+export const getReferralHistory = async (req, res) => {
+  try {
+    const referrals = await User.find({
+      referredBy: req.user.userId,
+    })
+      .select("username createdAt referralStatus")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ referrals });
+  } catch (error) {
+    console.error("Get referral history error:", error);
+
+    return res.status(500).json({
+      message: "Failed to retrieve referral history.",
+    });
+  }
+};
+export const getDashboardTransactions = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const [deposits, totalDeposits] = await Promise.all([
+      Deposit.find({
+        user: userId,
+        status: "success",
+      })
+        .sort({ paidAt: -1 })
+        .limit(5)
+        .select("amount reference paidAt createdAt"),
+
+      Deposit.aggregate([
+        {
+          $match: {
+            user: new mongoose.Types.ObjectId(userId),
+            status: "success",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$amount" },
+          },
+        },
+      ]),
+    ]);
+
+    const user = await User.findById(userId).select("balance");
+
+    return res.status(200).json({
+      transactions: deposits,
+      totalDeposits: totalDeposits[0]?.total || 0,
+      totalWithdrawals: 0,
+      currentBalance: user?.balance || 0,
+    });
+  } catch (error) {
+    console.error("Dashboard transactions error:", error);
+
+    return res.status(500).json({
+      message: "Failed to retrieve dashboard transactions.",
     });
   }
 };
