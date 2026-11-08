@@ -9,6 +9,7 @@ import UserSettings from "./pages/users/UserSettings"
 import UserReferrals from "./pages/users/UserReferrals"
 import  { Toaster } from "react-hot-toast";
 import ScrollToTop from "./components/common/ScrollToTop"
+import ForgotPassword from "./pages/auth/ForgotPassword"
 function App() {
 
   return (
@@ -25,6 +26,7 @@ function App() {
         </Route>
         <Route path="/" element={<Login/>}/>
         <Route path="/register" element={<Register/>}/>
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
       </Routes>
     </>
   )

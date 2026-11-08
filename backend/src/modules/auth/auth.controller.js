@@ -4,6 +4,7 @@ import { generateToken } from "../../utils/generateToken.js";
 import { generateReferralCode } from "../../utils/generateReferralCode.js";
 import Deposit from "../../models/Deposit.js";
 import mongoose from "mongoose";
+import { sendEmail } from "../../utils/sendEmail.js";
 
 export async function register(req, res) {
   try {
@@ -346,3 +347,11 @@ export const getDashboardTransactions = async (req, res) => {
     });
   }
 };
+
+export async function testEndpoint(req, res) {
+  await sendEmail({
+  to: "devben289@gmail.com",
+  subject: "Upfund Email Test",
+  html: "<h1>Email configuration works!</h1>",
+});
+}

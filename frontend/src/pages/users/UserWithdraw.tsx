@@ -1,11 +1,24 @@
-import { FiArrowUp, FiCreditCard, FiCheckCircle, FiClock, FiAlertCircle, } from "react-icons/fi"
+import { FiArrowUp, FiCreditCard, FiCheckCircle, FiAlertCircle, } from "react-icons/fi"
 import { useAuth } from "../../context/useAuth";
 import { useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import api from "../../services/api";
+
 const UserWithdraw = () => {
   const { currentUser } = useAuth();
   const [amount, setAmount] = useState("");
   const balance = currentUser?.balance ?? 0;
+  const withdrawalAmount = Number(amount) || 0;
+  const withdrawalFee = 0;
+const amountToReceive = Math.max(0, withdrawalAmount - withdrawalFee);
+const bankAccount = currentUser?.bankAccount;
 
+const hasBankAccount = Boolean(
+  bankAccount?.accountName &&
+  bankAccount?.accountNumber &&
+  bankAccount?.bankName
+);
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -13,6 +26,59 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 const quickAmounts = [7000, 10000, 15000, 20000];
+
+// real logic
+
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [balanceAdjustment, setBalanceAdjustment] = useState(0);
+
+const availableBalance = balance + balanceAdjustment;
+
+const handleWithdraw = async () => {
+  if (!amount.trim()) {
+    return toast.error("Please enter a withdrawal amount.");
+  }
+
+  if (!Number.isFinite(withdrawalAmount) || withdrawalAmount <= 0) {
+    return toast.error("Please enter a valid amount.");
+  }
+
+  if (withdrawalAmount > availableBalance) {
+    return toast.error("Insufficient wallet balance.");
+  }
+
+  if (!hasBankAccount) {
+    return toast.error("Please add your bank account in Settings.");
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    const response = await api.post("/api/payments/withdraw", {
+      amount: withdrawalAmount,
+    });
+
+   if (typeof response.data.balance === "number") {
+  setBalanceAdjustment(response.data.balance - balance);
+}
+
+    setAmount("");
+
+    toast.success(
+      response.data.message || "Withdrawal request submitted successfully."
+    );
+  } catch (error: unknown) {
+    if (axios.isAxiosError<{ message?: string }>(error)) {
+      toast.error(
+        error.response?.data?.message || "Unable to submit withdrawal request."
+      );
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
@@ -41,7 +107,7 @@ const quickAmounts = [7000, 10000, 15000, 20000];
                 </p>
 
                 <h2 className="text-2xl font-bold text-slate-800 mt-1">
-                  {formatCurrency(balance)}
+                  {formatCurrency(availableBalance)}
                 </h2>
               </div>
 
@@ -66,18 +132,7 @@ const quickAmounts = [7000, 10000, 15000, 20000];
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="
-                    w-full
-                    pl-10 pr-4 py-3
-                    rounded-xl
-                    border border-gray-200
-                    bg-gray-50
-                    text-slate-800
-                    outline-none
-                    focus:border-amber-500
-                    focus:ring-2
-                    focus:ring-amber-100
-                  "
+                  className=" w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 "
                 />
               </div>
 
@@ -97,18 +152,7 @@ const quickAmounts = [7000, 10000, 15000, 20000];
                   <button
                     key={amount}
                     onClick={() => setAmount(String(amount))}
-                    className="
-                      py-2.5
-                      rounded-lg
-                      border border-gray-200
-                      text-sm
-                      font-medium
-                      text-slate-600
-                      hover:border-amber-400
-                      hover:bg-amber-50
-                      hover:text-amber-600
-                      transition
-                    "
+                    className=" py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-slate-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-600 transition "
                   >
                     ₦{amount.toLocaleString("en-NG")}
                   </button>
@@ -116,95 +160,103 @@ const quickAmounts = [7000, 10000, 15000, 20000];
               </div>
             </div>
             {/* Bank Account */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Withdrawal Account
-                </label>
+           
+{/* Bank Account */}
+<div className="mb-6">
+  <div className="flex items-center justify-between mb-2">
+    <label className="text-sm font-medium text-slate-700">
+      Withdrawal Account
+    </label>
+  </div>
 
-                <button className="text-xs font-medium text-amber-600 hover:text-amber-700">
-                  Add account
-                </button>
-              </div>
+  {hasBankAccount ? (
+    <div className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 text-left">
+      <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-amber-600">
+        <FiCreditCard />
+      </div>
 
-              <button
-                className="
-                  w-full
-                  flex items-center gap-3
-                  p-4
-                  rounded-xl
-                  border-2 border-amber-500
-                  bg-amber-50
-                  text-left
-                "
-              >
-                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-amber-600">
-                  <FiCreditCard />
-                </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-800">
+          {bankAccount?.bankName}
+        </p>
 
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-800">
-                    Access Bank
-                  </p>
+        <p className="text-xs text-slate-500">
+          **** **** {bankAccount?.accountNumber?.slice(-4)}
+        </p>
 
-                  <p className="text-xs text-slate-500">
-                    **** **** 4821
-                  </p>
-                </div>
+        <p className="text-xs text-slate-500 mt-1">
+          {bankAccount?.accountName}
+        </p>
+      </div>
 
-                <FiCheckCircle className="text-amber-500" />
-              </button>
-            </div>
+      <FiCheckCircle className="text-amber-500 shrink-0" />
+    </div>
+  ) : (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-amber-600 shrink-0">
+          <FiAlertCircle />
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-slate-800">
+            No withdrawal account found
+          </p>
+
+          <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+            You haven't added a bank account yet. Please visit your
+            Settings page and add your bank details before making
+            a withdrawal.
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
 
             {/* Withdrawal Summary */}
-            <div className="rounded-xl bg-slate-50 border border-gray-100 p-4 mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-slate-500">
-                  Withdrawal amount
-                </span>
+            
+<div className="rounded-xl bg-slate-50 border border-gray-100 p-4 mb-6">
+  <div className="flex items-center justify-between mb-3">
+    <span className="text-sm text-slate-500">
+      Withdrawal amount
+    </span>
 
-                <span className="text-sm font-medium text-slate-800">
-                  ₦0.00
-                </span>
-              </div>
+    <span className="text-sm font-medium text-slate-800">
+      {formatCurrency(withdrawalAmount)}
+    </span>
+  </div>
 
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-slate-500">
-                  Withdrawal fee
-                </span>
+  <div className="flex items-center justify-between mb-3">
+    <span className="text-sm text-slate-500">
+      Withdrawal fee
+    </span>
 
-                <span className="text-sm font-medium text-slate-800">
-                  ₦0.00
-                </span>
-              </div>
+    <span className="text-sm font-medium text-slate-800">
+      {formatCurrency(withdrawalFee)}
+    </span>
+  </div>
 
-              <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-700">
-                  You'll receive
-                </span>
+  <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
+    <span className="text-sm font-semibold text-slate-700">
+      You'll receive
+    </span>
 
-                <span className="font-bold text-slate-800">
-                  ₦0.00
-                </span>
-              </div>
-            </div>
+    <span className="font-bold text-slate-800">
+      {formatCurrency(amountToReceive)}
+    </span>
+  </div>
+</div>
 
             {/* Withdraw Button */}
-            <button
-              className="
-                w-full
-                py-3.5
-                rounded-xl
-                bg-amber-500
-                hover:bg-amber-600
-                text-white
-                font-semibold
-                transition
-              "
-            >
-              Withdraw Funds
-            </button>
-
+           <button
+          onClick={handleWithdraw}
+          disabled={isSubmitting || !hasBankAccount || withdrawalAmount <= 0}
+          className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold transition"
+        >
+          {isSubmitting ? "Submitting Request..." : "Withdraw Funds"}
+        </button>
           </div>
         </div>
 
@@ -267,86 +319,8 @@ const quickAmounts = [7000, 10000, 15000, 20000];
         </div>
       </div>
 
-      {/* Recent Withdrawals */}
-      <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-
-        <div className="p-5 border-b border-gray-100">
-          <h2 className="font-semibold text-slate-800">
-            Recent Withdrawals
-          </h2>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Your recent withdrawal activity.
-          </p>
-        </div>
-
-        <div className="divide-y divide-gray-100">
-
-          {/* Successful */}
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-
-              <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                <FiCheckCircle />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-800">
-                  Bank Withdrawal
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  Today, 9:20 AM
-                </p>
-              </div>
-
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm font-semibold text-red-500">
-                -₦20,000
-              </p>
-
-              <p className="text-xs text-green-600">
-                Successful
-              </p>
-            </div>
-          </div>
-
-          {/* Pending */}
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-
-              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
-                <FiClock />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-800">
-                  Bank Withdrawal
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  Yesterday, 2:45 PM
-                </p>
-              </div>
-
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm font-semibold text-red-500">
-                -₦15,000
-              </p>
-
-              <p className="text-xs text-amber-600">
-                Pending
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
+   
+      
     </div>
   )
 }

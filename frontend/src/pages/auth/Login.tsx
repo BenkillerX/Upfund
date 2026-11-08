@@ -140,12 +140,12 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
             Password
           </label>
 
-          <button
+          <Link to="/forgot-password"
             type="button"
             className="text-sm font-medium text-gray-700 hover:text-gray-900"
           >
             Forgot password?
-          </button>
+          </Link>
         </div>
 
         <div className="relative">

@@ -73,9 +73,6 @@ const login = async ( email: string, password: string ): Promise<User> => {
     email,
     password,
   });
-
-  console.log("Login response:", response.data);
-
   const { token, user } = response.data;
 
   if (!token || !user) {
@@ -83,8 +80,6 @@ const login = async ( email: string, password: string ): Promise<User> => {
   }
 
   localStorage.setItem("token", token);
-
-  console.log("Saved token:", localStorage.getItem("token"));
 
   setCurrentUser(user);
 
@@ -106,7 +101,6 @@ const login = async ( email: string, password: string ): Promise<User> => {
 
   localStorage.setItem("token", token);
 
-    // const user: User = response.data.user;
   setCurrentUser(user);
 
     return user;

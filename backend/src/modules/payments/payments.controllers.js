@@ -3,6 +3,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import User from "../../models/User.js";
 import Deposit from "../../models/Deposit.js";
+import Withdrawal from "../../models/Withdrawal.js";
 
 
 // 1. Initialize deposit
@@ -290,5 +291,89 @@ export async function paystackWebhook(req, res) {
     console.error("Paystack webhook error:", error.message);
 
     return res.sendStatus(500);
+  }
+}
+
+
+export async function withdraw(req, res) {
+  const session = await mongoose.startSession();
+
+  try {
+    const { amount } = req.body;
+    const userId = req.user.userId;
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({
+        message: "Please enter a valid withdrawal amount.",
+      });
+    }
+
+    session.startTransaction();
+
+    const user = await User.findById(userId).session(session);
+
+    if (!user) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    const { accountName, accountNumber, bankName } =
+      user.bankAccount || {};
+
+    if (!accountName || !accountNumber || !bankName) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        message: "Please add your bank account details in Settings.",
+      });
+    }
+
+    if (user.balance < amount) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        message: "Insufficient wallet balance.",
+      });
+    }
+
+    user.balance -= amount;
+    await user.save({ session });
+
+    const [withdrawal] = await Withdrawal.create(
+      [
+        {
+          user: user._id,
+          accountDetails: {
+            accountName,
+            accountNumber,
+            bankName,
+          },
+          amount,
+          status: "pending",
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    return res.status(201).json({
+      message: "Withdrawal request submitted successfully.",
+      withdrawal,
+      balance: user.balance,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+
+    console.error("Withdrawal error:", error);
+
+    return res.status(500).json({
+      message: "Unable to process withdrawal request.",
+    });
+  } finally {
+    await session.endSession();
   }
 }
