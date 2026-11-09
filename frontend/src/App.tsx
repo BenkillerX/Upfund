@@ -29,9 +29,9 @@ function App() {
           <Route path="/user/referrals" element={<UserReferrals />} />
         </Route>
          <Route path="/admin" element={<AdminLayout />}>
-    <Route index element={<AdminHome />} />
-    <Route path="users" element={<AdminUsers />} />
-    <Route path="withdrawals" element={<AdminWithdrawals />} />
+          <Route index element={<AdminHome />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="withdrawals" element={<AdminWithdrawals />} />
   </Route>
         <Route path="/" element={<Login/>}/>
         <Route path="/register" element={<Register/>}/>
