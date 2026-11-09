@@ -2,7 +2,6 @@ import { Router } from "express";
 import { getCurrentUser, getDashboardTransactions, getReferralHistory, getReferralStats, login, register,updateBankAccount, updateProfile,testEndpoint } from "./auth.controller.js";
 import { registerValidator } from "../../validators/auth.validators.js";
 import { authenticateToken } from "../../middlewares/auth.middleware.js";
-console.log("AUTH ROUTES FILE LOADED");
 const authRouter = Router()
 authRouter.post('/register', registerValidator, register)
 authRouter.post('/login', login)

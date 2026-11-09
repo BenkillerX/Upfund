@@ -37,7 +37,7 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
       navigate("/user/", { replace: true });
     } else if (user.role === "admin") {
       toast.success("Welcome back, Admin!", { id: toastId });
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/admin/", { replace: true });
     } else {
       throw new Error("Your account has an unsupported role.");
     }

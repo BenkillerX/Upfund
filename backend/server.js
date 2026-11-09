@@ -6,18 +6,11 @@ import authRouter from "./src/modules/auth/auth.routes.js";
 import { connectDb } from "./src/config/db.js";
 import marketRoutes from "./src/modules/market/market.routes.js";
 import paymentRoutes from "./src/modules/payments/payment.auth.js";
+import adminRoutes from "./src/modules/admin/admin.routes.js";
 
 const app = express();
-
 const PORT = process.env.PORT || 5001;
-
-app.use(
-  cors({
-    origin: "https://upfund-seven.vercel.app",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors())
 
 app.use(
   express.json({
@@ -36,6 +29,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/market", marketRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 async function startServer() {
   try {
