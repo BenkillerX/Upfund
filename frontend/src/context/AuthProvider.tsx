@@ -130,6 +130,13 @@ const updateProfile = async (profile: { username: string; phoneNumber: string; }
 
   return response.data;
 };
+const changePassword = async (passwords: {
+  currentPassword: string;
+  newPassword: string;
+}) => {
+  const response = await api.patch("/api/auth/change-password", passwords);
+  return response.data;
+};
   // Logout
   const logout = (): void => {
     setCurrentUser(null);
@@ -146,6 +153,7 @@ const updateProfile = async (profile: { username: string; phoneNumber: string; }
         register,
         updateBankAccount,
         updateProfile,
+        changePassword,
       }}
     >
       {children}

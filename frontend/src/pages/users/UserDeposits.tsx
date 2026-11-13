@@ -25,7 +25,7 @@ const UserDeposits = () => {
     minimumFractionDigits: 2,
   }).format(balance);
 
-  const quickAmounts = [7000, 10000, 15000, 20000];
+  const quickAmounts = [5000, 10000, 20000, 50000];
 
   // Verify payment after Paystack redirects back
   useEffect(() => {
@@ -37,9 +37,7 @@ const UserDeposits = () => {
       setVerifying(true);
 
       try {
-      await api.get(
-      `/api/payments/deposit/verify/${encodeURIComponent(reference)}`
-    );
+      await api.get( `/api/payments/deposit/verify/${encodeURIComponent(reference)}` );
 
         toast.success("Deposit successful!");
 
@@ -69,12 +67,8 @@ const UserDeposits = () => {
  const handleDeposit = async () => {
   const depositAmount = Number(amount);
 
-  if (
-    !Number.isSafeInteger(depositAmount) ||
-    depositAmount < 7000 ||
-    depositAmount > 20000
-  ) {
-    toast.error("Deposit must be between ₦7,000 and ₦20,000.");
+  if ( !Number.isSafeInteger(depositAmount) || depositAmount < 5000) {
+    toast.error("Deposit must be at least ₦5,000.");
     return;
   }
 
@@ -170,8 +164,7 @@ const UserDeposits = () => {
 
                 <input
                   type="number"
-                  min="100"
-                  max="20000"
+                  min="5000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
@@ -180,7 +173,7 @@ const UserDeposits = () => {
               </div>
 
               <p className="text-xs text-slate-400 mt-2">
-                Minimum deposit: ₦100. Maximum deposit: ₦20,000.
+                Minimum deposit: ₦5,000.
               </p>
             </div>
 

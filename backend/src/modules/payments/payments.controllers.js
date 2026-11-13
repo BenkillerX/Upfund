@@ -13,17 +13,11 @@ export async function deposit(req, res) {
 
     const depositAmount = Number(amount);
 
-    const minDeposit = Number(process.env.MIN_DEPOSIT_NAIRA || 100);
-    const maxDeposit = Number(process.env.MAX_DEPOSIT_NAIRA || 20000);
+    const minDeposit = Number(process.env.MIN_DEPOSIT_NAIRA || 5000);
 
-    if (
-      !Number.isFinite(depositAmount) ||
-      !Number.isSafeInteger(depositAmount) ||
-      depositAmount < minDeposit ||
-      depositAmount > maxDeposit
-    ) {
+    if ( !Number.isFinite(depositAmount) || !Number.isSafeInteger(depositAmount) || depositAmount < minDeposit) {
       return res.status(400).json({
-        message: `Deposit must be between ₦${minDeposit} and ₦${maxDeposit}.`,
+        message: `Deposit must be at least ₦${minDeposit.toLocaleString("en-NG")}.`,
       });
     }
 
@@ -65,11 +59,6 @@ const response = await axios.post(
     },
   }
 );
-
-// return res.status(200).json({
-//   authorization_url: response.data.data.authorization_url,
-//   reference: response.data.data.reference,
-// });
 
     return res.status(200).json({
       message: "Deposit initialized successfully.",

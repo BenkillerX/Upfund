@@ -1,10 +1,12 @@
-import { FiUser, FiMail, FiPhone, FiLock, FiCreditCard, FiBell, FiChevronRight, FiLogOut, } from "react-icons/fi"
+import { FiUser, FiMail, FiPhone, FiLock, FiCreditCard, FiBell, FiChevronRight, FiLogOut, FiEye, FiEyeOff } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/useAuth"
 import { useState } from "react"
+import axios from "axios"
+import toast from "react-hot-toast"
 
 const UserSettings = () => {
-    const { logout, updateBankAccount, updateProfile, currentUser } = useAuth();
+    const { logout, updateBankAccount, updateProfile, changePassword, currentUser } = useAuth();
     const [showBankForm, setShowBankForm] = useState(false);
 const [accountName, setAccountName] = useState("");
 const [accountNumber, setAccountNumber] = useState("");
@@ -16,6 +18,13 @@ const [showProfileForm, setShowProfileForm] = useState(false);
 const [username, setUsername] = useState("");
 const [phoneNumber, setPhoneNumber] = useState("");
 const [savingProfile, setSavingProfile] = useState(false);
+const [currentPassword, setCurrentPassword] = useState("");
+const [newPassword, setNewPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
+const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+const [showNewPassword, setShowNewPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const [savingPassword, setSavingPassword] = useState(false);
   const navigate = useNavigate()
     const handleLogout = () => {
     logout()
@@ -37,6 +46,37 @@ const handleProfileSubmit = async (e: React.FormEvent) => {
     console.error("Failed to update profile:", error);
   } finally {
     setSavingProfile(false);
+  }
+};
+const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (newPassword !== confirmPassword) {
+    toast.error("New passwords do not match.");
+    return;
+  }
+
+  if (newPassword === currentPassword) {
+    toast.error("Your new password must be different from your current password.");
+    return;
+  }
+
+  setSavingPassword(true);
+
+  try {
+    const response = await changePassword({ currentPassword, newPassword });
+    toast.success(response.message || "Password changed successfully.");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  } catch (error: unknown) {
+    if (axios.isAxiosError<{ message?: string }>(error)) {
+      toast.error(error.response?.data?.message || "Unable to change your password.");
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+  } finally {
+    setSavingPassword(false);
   }
 };
 
@@ -210,12 +250,11 @@ const handleProfileSubmit = async (e: React.FormEvent) => {
 
           <div className="divide-y divide-gray-100">
 
-            <button className="
+            <div className="
               w-full
               flex items-center gap-4
               p-5
               text-left
-              hover:bg-gray-50
               transition
             ">
               <div className="
@@ -238,8 +277,108 @@ const handleProfileSubmit = async (e: React.FormEvent) => {
                 </p>
               </div>
 
-              <FiChevronRight className="text-slate-400" />
-            </button>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-4 p-5">
+                <div>
+                  <label htmlFor="current-password" className="mb-2 block text-sm font-medium text-slate-700">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="current-password"
+                      type={showCurrentPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                      className="w-full rounded-xl border border-gray-200 p-3 pr-11 text-sm outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="button"
+                      aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+                      onClick={() => setShowCurrentPassword((shown) => !shown)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-700"
+                    >
+                      {showCurrentPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="new-password" className="mb-2 block text-sm font-medium text-slate-700">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength={8}
+                      required
+                      className="w-full rounded-xl border border-gray-200 p-3 pr-11 text-sm outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="button"
+                      aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                      onClick={() => setShowNewPassword((shown) => !shown)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-700"
+                    >
+                      {showNewPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">Use at least 8 characters.</p>
+                </div>
+
+                <div>
+                  <label htmlFor="confirm-password" className="mb-2 block text-sm font-medium text-slate-700">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      minLength={8}
+                      required
+                      className="w-full rounded-xl border border-gray-200 p-3 pr-11 text-sm outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="button"
+                      aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"}
+                      onClick={() => setShowConfirmPassword((shown) => !shown)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-700"
+                    >
+                      {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+                  >
+                    {savingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
+                    className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-slate-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+            </form>
 
             <button 
             className=" w-full flex items-center gap-4 p-5 text-left hover:bg-gray-50 transition "

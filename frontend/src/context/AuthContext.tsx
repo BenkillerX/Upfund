@@ -34,6 +34,10 @@ export interface AuthContextType {
   username: string;
   phoneNumber: string;
 }) => Promise<{ message: string; user: User }>;
+  changePassword: (passwords: {
+    currentPassword: string;
+    newPassword: string;
+  }) => Promise<{ message: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
