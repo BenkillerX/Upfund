@@ -14,11 +14,14 @@ import AdminLayout from "./layout/AdminLayout"
 import AdminHome from "./pages/admin/AdminHome"
 import AdminUsers from "./pages/admin/AdminUsers"
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals"
+import { Analytics } from "@vercel/analytics/react"
 function App() {
 
   return (
     <>
     <ScrollToTop />
+    <Analytics />
+
     <Toaster position="top-right" />
       <Routes>
         <Route element={<UsersLayout/>}>
