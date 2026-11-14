@@ -14,6 +14,7 @@ export interface User {
   };
   phoneNumber: string | null;
   referralCode: string;
+  withdrawalUsed?: boolean;
 }
 
 export interface AuthContextType {

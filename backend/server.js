@@ -7,6 +7,7 @@ import { connectDb } from "./src/config/db.js";
 import marketRoutes from "./src/modules/market/market.routes.js";
 import paymentRoutes from "./src/modules/payments/payment.auth.js";
 import adminRoutes from "./src/modules/admin/admin.routes.js";
+import dailyEarningsJob from "./src/jobs/dailyEarningsJob.js";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -34,6 +35,7 @@ app.use("/api/admin", adminRoutes);
 async function startServer() {
   try {
     await connectDb();
+    dailyEarningsJob();
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on 0.0.0.0:${PORT}`);

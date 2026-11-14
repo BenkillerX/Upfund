@@ -5,7 +5,9 @@ import UserBalance from "./UserBalance"
 import {Link} from 'react-router-dom'
 import api from "../../services/api"
 import { useEffect, useState } from "react"
+import { useAuth } from "../../context/useAuth"
 const UserHome = () => {
+    const { currentUser } = useAuth();
 
     const [dashboardData, setDashboardData] = useState({
   transactions: [] as {
@@ -17,20 +19,34 @@ const UserHome = () => {
   }[],
   totalDeposits: 0,
   totalWithdrawals: 0,
-  currentBalance: 0,
+  currentBalance: currentUser?.balance ?? 0,
 });
 
 useEffect(() => {
+  let cancelled = false;
+
   const fetchDashboardData = async () => {
     try {
       const response = await api.get("/api/auth/dashboard/transactions");
-      setDashboardData(response.data);
+      if (!cancelled) {
+        setDashboardData(response.data);
+      }
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      if (!cancelled) {
+        console.error("Failed to fetch dashboard data:", error);
+      }
     }
   };
 
-  fetchDashboardData();
+  void fetchDashboardData();
+  const intervalId = window.setInterval(() => {
+    void fetchDashboardData();
+  }, 60_000);
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(intervalId);
+  };
 }, []);
   return (
  <div className="min-h-screen bg-gray-50">
@@ -40,7 +56,7 @@ useEffect(() => {
     <UserHeader />
 
     {/* Balance Card */}
-    <UserBalance/>
+    <UserBalance balance={dashboardData.currentBalance} />
     <LiveTradingChart/>
 {/* Quick Actions */}
 <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-xl">

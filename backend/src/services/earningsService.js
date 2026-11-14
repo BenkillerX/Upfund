@@ -1,22 +1,9 @@
-import Deposit from "../models/Deposit.js";
-
-const creditDailyEarnings = async (depositId) => {
-  const deposit = await Deposit.findById(depositId);
-
-  if (!deposit) {
-    throw new Error("Deposit not found");
+const calculateDailyEarnings = (initialDepositAmount) => {
+  if (!Number.isFinite(initialDepositAmount) || initialDepositAmount <= 0) {
+    throw new Error("Initial deposit amount must be a positive number.");
   }
 
-  if (deposit.status !== "success") {
-    throw new Error("Deposit is not successful");
-  }
-
-  const dailyEarnings = deposit.amount * 0.15;
-
-  return {
-    initialDeposit: deposit.amount,
-    dailyEarnings,
-  };
+  return Math.round(initialDepositAmount * 0.1 * 100) / 100;
 };
 
-export default creditDailyEarnings;
+export default calculateDailyEarnings;

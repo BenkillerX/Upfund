@@ -1,17 +1,20 @@
 import { FiArrowUp, FiCreditCard, FiCheckCircle, FiAlertCircle, } from "react-icons/fi"
 import { useAuth } from "../../context/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import WithdrawMarquee from "../../components/common/WithdrawMarquee";
 
 const UserWithdraw = () => {
   const { currentUser } = useAuth();
-  const [amount, setAmount] = useState("");
-  const balance = currentUser?.balance ?? 0;
-  const withdrawalAmount = Number(amount) || 0;
+  const [accountBalance, setAccountBalance] = useState(currentUser?.balance ?? 0);
+  const [withdrawalUsed, setWithdrawalUsed] = useState(currentUser?.withdrawalUsed === true);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const balance = accountBalance;
   const withdrawalFee = 0;
-const amountToReceive = Math.max(0, withdrawalAmount - withdrawalFee);
+const amountToReceive = Math.max(0, balance - withdrawalFee);
 const bankAccount = currentUser?.bankAccount;
 
 const hasBankAccount = Boolean(
@@ -25,26 +28,49 @@ const formatCurrency = (value: number) =>
     currency: "NGN",
     minimumFractionDigits: 2,
   }).format(value);
-const quickAmounts = [7000, 10000, 15000, 20000];
 
-// real logic
+useEffect(() => {
+  let cancelled = false;
 
-const [isSubmitting, setIsSubmitting] = useState(false);
-const [balanceAdjustment, setBalanceAdjustment] = useState(0);
+  const refreshAccount = async () => {
+    try {
+      const response = await api.get("/api/auth/me");
+      if (!cancelled) {
+        setAccountBalance(Number(response.data.user.balance) || 0);
+        setWithdrawalUsed(response.data.user.withdrawalUsed === true);
+      }
+    } catch (error) {
+      if (!cancelled) {
+        console.error("Failed to refresh withdrawal eligibility:", error);
+      }
+    } finally {
+      if (!cancelled) {
+        setLoadingAccount(false);
+      }
+    }
+  };
 
-const availableBalance = balance + balanceAdjustment;
+  void refreshAccount();
+  const intervalId = window.setInterval(() => {
+    void refreshAccount();
+  }, 60_000);
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(intervalId);
+  };
+}, []);
+
+const availableBalance = balance;
+const withdrawalAmount = availableBalance;
 
 const handleWithdraw = async () => {
-  if (!amount.trim()) {
-    return toast.error("Please enter a withdrawal amount.");
-  }
-
   if (!Number.isFinite(withdrawalAmount) || withdrawalAmount <= 0) {
-    return toast.error("Please enter a valid amount.");
+    return toast.error("There is no wallet balance to withdraw.");
   }
 
-  if (withdrawalAmount > availableBalance) {
-    return toast.error("Insufficient wallet balance.");
+  if (withdrawalUsed) {
+    return toast.error("Make a new successful deposit before withdrawing again.");
   }
 
   if (!hasBankAccount) {
@@ -58,11 +84,10 @@ const handleWithdraw = async () => {
       amount: withdrawalAmount,
     });
 
-   if (typeof response.data.balance === "number") {
-  setBalanceAdjustment(response.data.balance - balance);
-}
-
-    setAmount("");
+    if (typeof response.data.balance === "number") {
+      setAccountBalance(response.data.balance);
+    }
+    setWithdrawalUsed(true);
 
     toast.success(
       response.data.message || "Withdrawal request submitted successfully."
@@ -81,7 +106,7 @@ const handleWithdraw = async () => {
 };
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
-
+      <WithdrawMarquee/>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
@@ -89,7 +114,7 @@ const handleWithdraw = async () => {
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Withdraw money from your UpFund wallet.
+          Withdraw your full wallet balance once per deposit cycle.
         </p>
       </div>
 
@@ -129,35 +154,16 @@ const handleWithdraw = async () => {
 
                 <input
                   type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className=" w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 "
+                  value={availableBalance}
+                  readOnly
+                  aria-label="Full wallet balance to withdraw"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-100 py-3 pl-10 pr-4 text-slate-800 outline-none"
                 />
               </div>
 
               <p className="text-xs text-slate-400 mt-2">
-                Available: {formatCurrency(balance)}
+                The full balance must be withdrawn in one request.
               </p>
-            </div>
-
-            {/* Quick Amounts */}
-            <div className="mb-6">
-              <p className="text-sm font-medium text-slate-700 mb-2">
-                Quick Amount
-              </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {quickAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => setAmount(String(amount))}
-                    className=" py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-slate-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-600 transition "
-                  >
-                    ₦{amount.toLocaleString("en-NG")}
-                  </button>
-                ))}
-              </div>
             </div>
             {/* Bank Account */}
            
@@ -214,6 +220,11 @@ const handleWithdraw = async () => {
   )}
 </div>
 
+{withdrawalUsed && (
+  <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+    You have used your withdrawal for this cycle. Make a new successful deposit to unlock another withdrawal.
+  </p>
+)}
 
             {/* Withdrawal Summary */}
             
@@ -252,10 +263,16 @@ const handleWithdraw = async () => {
             {/* Withdraw Button */}
            <button
           onClick={handleWithdraw}
-          disabled={isSubmitting || !hasBankAccount || withdrawalAmount <= 0}
+          disabled={loadingAccount || isSubmitting || withdrawalUsed || !hasBankAccount || withdrawalAmount <= 0}
           className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold transition"
         >
-          {isSubmitting ? "Submitting Request..." : "Withdraw Funds"}
+          {loadingAccount
+            ? "Loading Wallet..."
+            : isSubmitting
+              ? "Submitting Request..."
+              : withdrawalUsed
+                ? "Deposit to Withdraw Again"
+                : "Withdraw Full Balance"}
         </button>
           </div>
         </div>

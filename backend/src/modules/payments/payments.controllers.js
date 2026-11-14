@@ -123,6 +123,7 @@ async function processSuccessfulDeposit(reference) {
         throw new Error("Payment details do not match.");
       }
 
+      const paidAt = new Date();
       const updatedDeposit = await Deposit.updateOne(
         {
           _id: existingDeposit._id,
@@ -131,7 +132,7 @@ async function processSuccessfulDeposit(reference) {
         {
           $set: {
             status: "success",
-            paidAt: new Date(),
+            paidAt,
           },
         },
         { session }
@@ -167,7 +168,10 @@ async function processSuccessfulDeposit(reference) {
         },
         {
           $set: {
-            firstDepositAt: new Date(),
+            firstDepositAt: paidAt,
+            firstDepositAmount: existingDeposit.amount,
+            lastDailyEarningsAt: paidAt,
+            withdrawalUsed: false,
           },
         },
         {
@@ -175,6 +179,23 @@ async function processSuccessfulDeposit(reference) {
           session,
         }
       );
+
+      if (!firstDeposit) {
+        await User.findOneAndUpdate(
+          {
+            _id: user._id,
+            withdrawalUsed: true,
+          },
+          {
+            $set: {
+              firstDepositAmount: existingDeposit.amount,
+              lastDailyEarningsAt: paidAt,
+              withdrawalUsed: false,
+            },
+          },
+          { session }
+        );
+      }
 
       // First successful deposit qualifies the referral
       if (firstDeposit && firstDeposit.referredBy) {
@@ -320,16 +341,48 @@ export async function withdraw(req, res) {
       });
     }
 
-    if (user.balance < amount) {
+    if (user.withdrawalUsed) {
       await session.abortTransaction();
 
       return res.status(400).json({
-        message: "Insufficient wallet balance.",
+        message: "You have already withdrawn for this deposit cycle. Make a new deposit to withdraw again.",
       });
     }
 
-    user.balance -= amount;
-    await user.save({ session });
+    if (amount !== user.balance) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        message: "You must withdraw your full wallet balance in one request.",
+      });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: user._id,
+        balance: amount,
+        withdrawalUsed: { $ne: true },
+      },
+      {
+        $set: {
+          balance: 0,
+          withdrawalUsed: true,
+          lastDailyEarningsAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        session,
+      }
+    );
+
+    if (!updatedUser) {
+      await session.abortTransaction();
+
+      return res.status(409).json({
+        message: "Your wallet changed. Refresh your balance and try again.",
+      });
+    }
 
     const [withdrawal] = await Withdrawal.create(
       [
@@ -352,7 +405,7 @@ export async function withdraw(req, res) {
     return res.status(201).json({
       message: "Withdrawal request submitted successfully.",
       withdrawal,
-      balance: user.balance,
+      balance: updatedUser.balance,
     });
   } catch (error) {
     await session.abortTransaction();

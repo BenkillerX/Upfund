@@ -69,6 +69,19 @@ firstDepositAt: {
   type: Date,
   default: null,
 },
+firstDepositAmount: {
+  type: Number,
+  default: null,
+  min: 0,
+},
+lastDailyEarningsAt: {
+  type: Date,
+  default: null,
+},
+withdrawalUsed: {
+  type: Boolean,
+  default: false,
+},
     role: {
       type: String,
       enum: ["user", "admin"],

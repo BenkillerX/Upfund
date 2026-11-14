@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 
-const UserBalance = () => {
+const UserBalance = ({ balance: balanceOverride }: { balance?: number }) => {
   const [showBalance, setShowBalance] = useState(true);
   const [currency, setCurrency] = useState<"NGN" | "USD">("NGN");
   const { currentUser } = useAuth();
-  const balance = Number(currentUser?.balance ?? 0);
+  const balance = Number(balanceOverride ?? currentUser?.balance ?? 0);
   const USD_TO_NGN = 1500;
   const convertedBalance = currency === "NGN" ? balance : balance / USD_TO_NGN;
   const formattedBalance = new Intl.NumberFormat("en-US", {
