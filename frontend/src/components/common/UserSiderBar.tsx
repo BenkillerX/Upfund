@@ -26,7 +26,7 @@ const UserSiderBar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
