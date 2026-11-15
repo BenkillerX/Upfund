@@ -66,8 +66,8 @@ const UserDeposits = () => {
  const handleDeposit = async () => {
   const depositAmount = Number(amount);
 
-  if ( !Number.isSafeInteger(depositAmount) || depositAmount < 100) {
-    toast.error("Deposit must be at least ₦100.");
+  if ( !Number.isSafeInteger(depositAmount) || depositAmount < 5000) {
+    toast.error("Deposit must be at least ₦5,000.");
     return;
   }
 
