@@ -47,7 +47,6 @@ const response = await axios.post(
 
     // Redirect user back to the deposit page after payment
     callback_url: `${process.env.FRONTEND_URL}/user/deposit`,
-
     metadata: {
       userId: user._id.toString(),
     },
