@@ -269,21 +269,25 @@ export async function verifyDeposit(req, res) {
 
 export async function paystackWebhook(req, res) {
   try {
+    const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+
     const signature = req.headers["x-paystack-signature"];
+
+    if (!req.rawBody || !signature || !PAYSTACK_SECRET) {
+      return res.sendStatus(400);
+    }
 
     const hash = crypto
       .createHmac("sha512", PAYSTACK_SECRET)
       .update(req.rawBody)
       .digest("hex");
 
+    const hashBuffer = Buffer.from(hash, "hex");
+    const signatureBuffer = Buffer.from(signature, "hex");
+
     if (
-      !signature ||
-      !req.rawBody ||
-      signature.length !== hash.length ||
-      !crypto.timingSafeEqual(
-        Buffer.from(hash, "hex"),
-        Buffer.from(signature, "hex")
-      )
+      signatureBuffer.length !== hashBuffer.length ||
+      !crypto.timingSafeEqual(hashBuffer, signatureBuffer)
     ) {
       return res.sendStatus(401);
     }
@@ -298,7 +302,7 @@ export async function paystackWebhook(req, res) {
 
     return res.sendStatus(200);
   } catch (error) {
-    console.error("Paystack webhook error:", error.message);
+    console.error("Paystack webhook error:", error);
 
     return res.sendStatus(500);
   }

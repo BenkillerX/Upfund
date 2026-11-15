@@ -12,7 +12,6 @@ const UserDeposits = () => {
   const { currentUser } = useAuth();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
