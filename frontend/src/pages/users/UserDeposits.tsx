@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { FiArrowDown, FiCreditCard, FiClock, FiCheckCircle, } from "react-icons/fi";
 import { useAuth } from "../../context/useAuth";
 import api from "../../services/api";
+import DepositMarquee from "../../components/common/DepositMarquee";
 
 
 
@@ -117,6 +118,7 @@ const UserDeposits = () => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
       {/* Header */}
+      <DepositMarquee/>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
           Deposit
@@ -126,7 +128,7 @@ const UserDeposits = () => {
           Add money to your UpFund wallet.
         </p>
       </div>
-
+      
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
         {/* Deposit Form */}
