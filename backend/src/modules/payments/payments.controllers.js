@@ -13,7 +13,7 @@ export async function deposit(req, res) {
 
     const depositAmount = Number(amount);
 
-    const minDeposit = Number(process.env.MIN_DEPOSIT_NAIRA || 5000); 
+    const minDeposit = Number(process.env.MIN_DEPOSIT_NAIRA || 100); 
 
     if ( !Number.isFinite(depositAmount) || !Number.isSafeInteger(depositAmount) || depositAmount < minDeposit) {
       return res.status(400).json({
